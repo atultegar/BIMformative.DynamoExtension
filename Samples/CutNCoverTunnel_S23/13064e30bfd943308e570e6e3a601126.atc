@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<Category xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ItemID idValue="{dd7c977a-316a-4767-bac8-d9e71e73a7f3}" />
+  <Properties>
+    <ItemName>Category1</ItemName>
+    <Images>
+      <Image cx="93" cy="123" />
+    </Images>
+  </Properties>
+  <CustomData />
+  <Source />
+  <Palettes />
+  <Packages />
+  <Tools>
+    <Tool Name="CutNCoverTunnel">
+      <ItemID idValue="{1560f001-4ed9-4635-8ea8-27589f351abc}" />
+      <Properties>
+        <ItemName>CutNCoverTunnel</ItemName>
+        <Images>
+          <Image cx="64" cy="64" />
+        </Images>
+        <Description>Concrete Tunnel</Description>
+        <Help>
+          <HelpFile />
+          <HelpCommand />
+          <HelpData />
+        </Help>
+      </Properties>
+      <Source />
+      <StockToolRef idValue="{7F55AAC0-0256-48D7-BFA5-914702663FDE}" />
+      <Data>
+        <AeccDbSubassembly>
+          <GeometryGenerateMode>UseDotNet</GeometryGenerateMode>
+          <DotNetClass Assembly="13064e30bfd943308e570e6e3a601126.dll">Subassembly.CutNCoverTunnel</DotNetClass>
+          <Params>
+            <BSThick DataType="double" TypeInfo="16" DisplayName="Bottom Slab Thickness" Description="BSThick">0.6</BSThick>
+            <TSThick DataType="double" TypeInfo="16" DisplayName="Top Slab Thickness" Description="TSThick">0.6</TSThick>
+            <LWThick DataType="double" TypeInfo="16" DisplayName="Left Wall Thickness" Description="LWThick">0.6</LWThick>
+            <RWThick DataType="double" TypeInfo="16" DisplayName="Right Wall Thickness" Description="RWThick">0.6</RWThick>
+            <TrSThick DataType="double" TypeInfo="16" DisplayName="Track Slab Thickness" Description="TrSThick">0.8</TrSThick>
+            <IntHeight DataType="double" TypeInfo="16" DisplayName="Internal Height from Origin" Description="IntHeight">5.2</IntHeight>
+            <TrSYOff DataType="double" TypeInfo="16" DisplayName="Track Slab Y Offset" Description="TrSYOff">0</TrSYOff>
+            <LWXOff DataType="double" TypeInfo="16" DisplayName="Left Wall X Offset" Description="LWXOff">2.5</LWXOff>
+            <RWXOff DataType="double" TypeInfo="16" DisplayName="Right Wall X Offset" Description="RWXOff">3</RWXOff>
+            <BSOff DataType="double" TypeInfo="16" DisplayName="Base Slab Offset" Description="BSOff">0</BSOff>
+            <TSOff DataType="double" TypeInfo="16" DisplayName="Top Slab Offset" Description="TSOff">0</TSOff>
+            <Excavation DataType="long" TypeInfo="16" DisplayName="Excavation Link" Description="Excavation">11<Enum><Yes DisplayName="Yes">10</Yes><No DisplayName="No">11</No></Enum></Excavation>
+            <ExcXOff DataType="double" TypeInfo="16" DisplayName="Excavation Horizontal Offset" Description="ExcXOff">1</ExcXOff>
+            <ExcYOff DataType="double" TypeInfo="16" DisplayName="Excavation Vertical Offset" Description="ExcYOff">0.3</ExcYOff>
+          </Params>
+        </AeccDbSubassembly>
+        <Units>m</Units>
+      </Data>
+    </Tool>
+  </Tools>
+  <StockTools />
+</Category>

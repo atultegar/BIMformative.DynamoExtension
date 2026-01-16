@@ -1,0 +1,138 @@
+﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.SearchBoxControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BIMformative.DynamoExtension.UI.Views"             >
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Buttons.xaml" />
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Image.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="TextBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="15 10 5 5"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontFamily" Value="{StaticResource BIMFont}"/>
+                <Setter Property="Foreground" Value="#F5F5F5"></Setter>
+            </Style>
+            <Style x:Key="TextBlockStyle" TargetType="TextBlock">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="15 10 5 5"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontFamily" Value="{StaticResource BIMFont}"/>
+                <Setter Property="Foreground" Value="#F5F5F5"></Setter>
+            </Style>
+            <Style x:Key="BorderStyle" TargetType="Border">
+                <Setter Property="BorderThickness" Value="0 0 0 1"></Setter>
+                <Setter Property="Background" Value="Transparent"></Setter>
+                <Setter Property="BorderBrush" Value="#666666"></Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ElementName=SearchTextBox, Path=IsMouseOver}" Value="True">
+                        <Setter Property="BorderBrush" Value="#CCCCCC"></Setter>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=SearchTextBox, Path=IsFocused}" Value="True">
+                        <Setter Property="BorderBrush" Value="#38ABDF"></Setter>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="RectangleStyle" TargetType="Rectangle">
+                <Setter Property="Opacity" Value="0"/>
+                <Setter Property="Fill" Value="#BCD3EE"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ElementName=SearchTextBox, Path=IsFocused}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard SpeedRatio="2">
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 To="0.75" Duration="0:0:1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard SpeedRatio="2">
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                 To="0" Duration="0:0:1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <Border VerticalAlignment="Center" Style="{StaticResource BorderStyle}">
+                <DockPanel x:Name="SearchBarStackPanel"
+                           Margin="4,0"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Center">
+                    <Image x:Name="SearchImage"
+                           Width="20"
+                           Height="20"
+                           Margin="0,5,-10,0"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           SnapsToDevicePixels="True"
+                           Source="/BIMformative.DynamoExtension;component/UI/Assets/search_icon_20px.png"
+                           Stretch="UniformToFill" />
+                    <Grid HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        
+                        <!--Watermark-->
+                        <TextBlock
+                            Name="SearchTextBoxWatermark"
+                            Style="{StaticResource TextBlockStyle}"
+                            Margin="2,0,0,0"
+                            Opacity="0.5"
+                            VerticalAlignment="Center"
+                            Visibility="Visible"
+                            IsHitTestVisible="False"
+                            Text="">                            
+                        </TextBlock>
+                        
+                        <!--Search Box-->
+                        <TextBox
+                            Name="SearchTextbox"
+                            Style="{StaticResource TextBoxStyle}"
+                            BorderThickness="0"
+                            CaretBrush="White"
+                            Cursor="IBeam"
+                            HorizontalAlignment="Stretch"
+                            Text="{Binding SearchText, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            IsKeyboardFocusWithinChanged="SearchBox_OnKeyboardFocusWithinChanged"></TextBox>
+                        
+                        <!--Clear Search-->
+
+                        <Button Grid.Column="1"
+                                Margin="5,5,0,0"
+                                PreviewMouseLeftButtonDown="OnSearchClearButtonClicked"
+                                Name="SearchClearButton"
+                                Style="{StaticResource ButtonStyle1}"
+                                Visibility="Visible"
+                                Width="16"
+                                Height="16"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                ToolTip="test"
+                                Cursor="Hand">
+                            <Image Source="/BIMformative.DynamoExtension;component/UI/Assets/Clear.png"
+                                   SnapsToDevicePixels="True"
+                                   Style="{StaticResource ImageStyle}"/>
+                        </Button>
+                    </Grid>
+                </DockPanel>
+            </Border>
+            <Rectangle Style="{StaticResource RectangleStyle}" Height="5"></Rectangle>
+        </StackPanel>
+            
+    </Grid>
+</UserControl>

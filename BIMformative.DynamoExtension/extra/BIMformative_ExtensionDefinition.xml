@@ -1,0 +1,4 @@
+﻿<ExtensionDefinition>
+	<AssemblyPath>bin\Debug\net8.0-windows\BIMformative.DynamoExtension.dll</AssemblyPath>
+	<TypeName>BIMformative.DynamoExtension.BIMformativeExtension</TypeName>
+</ExtensionDefinition>

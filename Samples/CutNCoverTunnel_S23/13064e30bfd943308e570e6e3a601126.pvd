@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<PreviewData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Superelevation>
+    <CrossSlopes>
+      <PreviewCrossSlope CrossSegmentType="LeftInsideLane" Slope="-0.02" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="LeftInsideShoulder" Slope="-0.05" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="LeftOutsideLane" Slope="-0.02" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="LeftOutsideShoulder" Slope="-0.05" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="RightInsideLane" Slope="-0.02" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="RightInsideShoulder" Slope="-0.05" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="RightOutsideLane" Slope="-0.02" IsDefined="true" />
+      <PreviewCrossSlope CrossSegmentType="RightOutsideShoulder" Slope="-0.05" IsDefined="true" />
+    </CrossSlopes>
+  </Superelevation>
+  <Cant>
+    <CantParams>
+      <PreviewCantParam Name="CantPivotType" Value="CenterLine" />
+      <PreviewCantParam Name="LeftRail" Value="" />
+      <PreviewCantParam Name="LeftRailDeltaElevation" Value="0" />
+      <PreviewCantParam Name="RightRail" Value="" />
+      <PreviewCantParam Name="RightRailDeltaElevation" Value="0" />
+    </CantParams>
+  </Cant>
+</PreviewData>

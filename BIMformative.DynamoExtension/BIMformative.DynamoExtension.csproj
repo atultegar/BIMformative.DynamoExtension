@@ -1,0 +1,76 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+        <Nullable>enable</Nullable>
+		<PlatformTarget>x64</PlatformTarget>
+		<LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="UI\Assets\caret_drop_down.png" />
+      <None Remove="UI\Assets\circle-user-round.png" />
+      <None Remove="UI\Assets\Clear.png" />
+      <None Remove="UI\Assets\close-darktheme-default-16px.png" />
+      <None Remove="UI\Assets\close-darktheme-disabled-16px.png" />
+      <None Remove="UI\Assets\close-darktheme-hover-16px.png" />
+      <None Remove="UI\Assets\Date.png" />
+      <None Remove="UI\Assets\Download.png" />
+      <None Remove="UI\Assets\Filter.png" />
+      <None Remove="UI\Assets\Fonts\Inter-ExtraLight.ttf" />
+      <None Remove="UI\Assets\Fonts\Inter-Light.ttf" />
+      <None Remove="UI\Assets\Fonts\Inter-Regular.ttf" />
+      <None Remove="UI\Assets\Fonts\Inter-SemiBold.ttf" />
+      <None Remove="UI\Assets\logo-dark-2.png" />
+      <None Remove="UI\Assets\Profile.png" />
+      <None Remove="UI\Assets\search_icon_20px.png" />
+      <None Remove="UI\Assets\Sort.png" />
+      <None Remove="UI\Assets\workflow.png" />
+    </ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="DynamoCore">
+			<HintPath>C:\Program Files\Autodesk\Revit 2025\AddIns\DynamoForRevit\DynamoCore.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="DynamoCoreWpf">
+			<HintPath>C:\Program Files\Autodesk\Revit 2025\AddIns\DynamoForRevit\DynamoCoreWpf.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="DynamoServices">
+			<HintPath>C:\Program Files\Autodesk\Revit 2025\AddIns\DynamoForRevit\DynamoServices.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="UI\Assets\caret_drop_down.png" />
+	  <Resource Include="UI\Assets\circle-user-round.png" />
+	  <Resource Include="UI\Assets\Clear.png" />
+	  <Resource Include="UI\Assets\close-darktheme-default-16px.png" />
+	  <Resource Include="UI\Assets\close-darktheme-disabled-16px.png" />
+	  <Resource Include="UI\Assets\close-darktheme-hover-16px.png" />
+	  <Resource Include="UI\Assets\Date.png" />
+	  <Resource Include="UI\Assets\Download.png" />
+	  <Resource Include="UI\Assets\Filter.png" />
+	  <Resource Include="UI\Assets\Fonts\Inter-ExtraLight.ttf" />
+	  <Resource Include="UI\Assets\Fonts\Inter-Light.ttf" />
+	  <Resource Include="UI\Assets\Fonts\Inter-Regular.ttf" />
+	  <Resource Include="UI\Assets\Fonts\Inter-SemiBold.ttf" />
+	  <Resource Include="UI\Assets\logo-dark-2.png" />
+	  <Resource Include="UI\Assets\Profile.png" />
+	  <Resource Include="UI\Assets\Requirements-disabled.png" />
+	  <Resource Include="UI\Assets\search_icon_20px.png" />
+	  <Resource Include="UI\Assets\Sort.png" />
+	  <Resource Include="UI\Assets\workflow.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\Local\" />
+	  <Folder Include="Services\Infrastructure\" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,8 @@
+{
+  "name": "BIMformative",
+  "version": "0.1.0",
+  "engine": "dynamo",
+  "engine_version": "3.3.0",
+  "description": "Browse and load Dynamo scripts from BIMformative",
+  "author": "BIMformative"
+}

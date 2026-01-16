@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Regular -->
+    <FontFamily x:Key="BIMFont">
+        pack://application:,,,/BIMformative.DynamoExtension;component/UI/Assets/Fonts/#Inter
+    </FontFamily>
+   
+    
+</ResourceDictionary>

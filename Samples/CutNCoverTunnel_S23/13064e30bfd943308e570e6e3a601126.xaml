@@ -1,0 +1,698 @@
+﻿<Activity mc:Ignorable="sads sap" x:Class="Subassembly" this:Subassembly.Side="[new EnumType(-1, &quot;None&quot;, &quot;Side&quot;)]" this:Subassembly.BSThick="0.6" this:Subassembly.TSThick="0.6" this:Subassembly.LWThick="0.6" this:Subassembly.RWThick="0.6" this:Subassembly.TrSThick="0.8" this:Subassembly.IntHeight="5.2" this:Subassembly.TrSYOff="0" this:Subassembly.LWXOff="2.5" this:Subassembly.RWXOff="3" this:Subassembly.RightAlg="[new PreviewOffsetTarget(&quot;RightAlg&quot;, True, 0)]" this:Subassembly.BSOff="0" this:Subassembly.TSOff="0" this:Subassembly.Excavation="[new EnumType(11, &quot;No&quot;, &quot;Yes\No&quot;)]" this:Subassembly.ExcXOff="1" this:Subassembly.ExcYOff="0.3" this:Subassembly.TrSBottom="[new PreviewElevationTarget(&quot;TrSBottom&quot;, True, -0.8)]"
+ xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+ xmlns:asa="clr-namespace:Autodesk.SubassemblyComposer.API;assembly=Subassembly.API"
+ xmlns:asa1="clr-namespace:Autodesk.SubassemblyComposer.API;assembly=Subassembly.WorkflowEngine"
+ xmlns:asa2="clr-namespace:Autodesk.SubassemblyComposer.ActivityLibrary;assembly=Subassembly.ActivityLibrary"
+ xmlns:asw="clr-namespace:Autodesk.SubassemblyComposer.WorkflowEngine;assembly=Subassembly.WorkflowEngine"
+ xmlns:av="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+ xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
+ xmlns:s="clr-namespace:System;assembly=mscorlib"
+ xmlns:s1="clr-namespace:System;assembly=System.Core"
+ xmlns:s2="clr-namespace:System;assembly=System"
+ xmlns:s3="clr-namespace:System;assembly=System.Runtime.WindowsRuntime"
+ xmlns:sa="clr-namespace:System.Activities;assembly=System.Activities"
+ xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
+ xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+ xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+ xmlns:this="clr-namespace:"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <x:Members>
+    <x:Property Name="Geometry" Type="InOutArgument(asw:Geometry)" />
+    <x:Property Name="SubassemblyErrorCenter" Type="InOutArgument(asw:SubassemblyErrorCenter)" />
+    <x:Property Name="SubassemblyRunMode" Type="InOutArgument(asw:SubassemblyRunMode)" />
+    <x:Property Name="Side" Type="InArgument(asw:EnumType)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="BSThick" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Bottom Slab Thickness" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="TSThick" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Top Slab Thickness" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="LWThick" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Left Wall Thickness" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="RWThick" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Right Wall Thickness" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="TrSThick" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:DisplayName2Attribute DisplayName="Track Slab Thickness" />
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="IntHeight" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Internal Height from Origin" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="TrSYOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Track Slab Y Offset" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="LWXOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:DisplayName2Attribute DisplayName="Left Wall X Offset" />
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="RWXOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Right Wall X Offset" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="RightAlg" Type="InArgument(asw:OffsetTarget)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Right Alignment" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="BSOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Base Slab Offset" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="TSOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Top Slab Offset" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="Excavation" Type="InArgument(asw:EnumType)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Excavation Link" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="ExcXOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Excavation Horizontal Offset" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="ExcYOff" Type="InArgument(x:Double)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="Excavation Vertical Offset" />
+      </x:Property.Attributes>
+    </x:Property>
+    <x:Property Name="TrSBottom" Type="InArgument(asw:ElevationTarget)">
+      <x:Property.Attributes>
+        <asw:EnabledFlag2Attribute EnabledFlag="True" />
+        <asw:DisplayName2Attribute DisplayName="TrackSlab Bottom" />
+      </x:Property.Attributes>
+    </x:Property>
+  </x:Members>
+  <sap:VirtualizedContainerService.HintSize>654,811</sap:VirtualizedContainerService.HintSize>
+  <mva:VisualBasic.Settings>Assembly references and imported namespaces serialized as XML namespaces</mva:VisualBasic.Settings>
+  <Flowchart sap:VirtualizedContainerService.HintSize="614,771" mva:VisualBasic.Settings="Assembly references and imported namespaces serialized as XML namespaces">
+    <Flowchart.Variables>
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(41, &quot;AwayFromCrown&quot;)]" Modifiers="ReadOnly" Name="AwayFromCrown" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(1, &quot;Left&quot;)]" Modifiers="ReadOnly" Name="Left" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(20, &quot;LeftInsideLane&quot;)]" Modifiers="ReadOnly" Name="LeftInsideLane" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(21, &quot;LeftInsideShoulder&quot;)]" Modifiers="ReadOnly" Name="LeftInsideShoulder" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(22, &quot;LeftOutsideLane&quot;)]" Modifiers="ReadOnly" Name="LeftOutsideLane" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(23, &quot;LeftOutsideShoulder&quot;)]" Modifiers="ReadOnly" Name="LeftOutsideShoulder" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(11, &quot;No&quot;)]" Modifiers="ReadOnly" Name="No" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(-1, &quot;None&quot;)]" Modifiers="ReadOnly" Name="None" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(0, &quot;Right&quot;)]" Modifiers="ReadOnly" Name="Right" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(24, &quot;RightInsideLane&quot;)]" Modifiers="ReadOnly" Name="RightInsideLane" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(25, &quot;RightInsideShoulder&quot;)]" Modifiers="ReadOnly" Name="RightInsideShoulder" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(26, &quot;RightOutsideLane&quot;)]" Modifiers="ReadOnly" Name="RightOutsideLane" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(27, &quot;RightOutsideShoulder&quot;)]" Modifiers="ReadOnly" Name="RightOutsideShoulder" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(30, &quot;Supported&quot;)]" Modifiers="ReadOnly" Name="Supported" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(40, &quot;TowardsCrown&quot;)]" Modifiers="ReadOnly" Name="TowardsCrown" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(31, &quot;Unsupported&quot;)]" Modifiers="ReadOnly" Name="Unsupported" />
+      <Variable x:TypeArguments="asw:EnumType" Default="[new EnumType(10, &quot;Yes&quot;)]" Modifiers="ReadOnly" Name="Yes" />
+    </Flowchart.Variables>
+    <sap:WorkflowViewStateService.ViewState>
+      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+        <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+        <av:Point x:Key="ShapeLocation">270,2.5</av:Point>
+        <av:Size x:Key="ShapeSize">60,75</av:Size>
+        <av:PointCollection x:Key="ConnectorLocation">300,77.5 300,94.5</av:PointCollection>
+        <x:Double x:Key="Height">735.02</x:Double>
+      </scg:Dictionary>
+    </sap:WorkflowViewStateService.ViewState>
+    <Flowchart.StartNode>
+      <FlowStep x:Name="__ReferenceID1">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <av:Point x:Key="ShapeLocation">200,94.5</av:Point>
+            <av:Size x:Key="ShapeSize">200,51</av:Size>
+            <av:PointCollection x:Key="ConnectorLocation">300,145.5 300,184.5</av:PointCollection>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+        <Sequence DisplayName="BASIS" sap:VirtualizedContainerService.HintSize="200,51">
+          <sap:WorkflowViewStateService.ViewState>
+            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            </scg:Dictionary>
+          </sap:WorkflowViewStateService.ViewState>
+          <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" FromPoint="{x:Null}" ActivityId="1" ApplyAOR="False" AutoLink="False" DisplayName="P1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P1" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+            <asa2:CreatePoint.Arguments>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+            </asa2:CreatePoint.Arguments>
+            <asa2:CreatePoint.PointCodes>
+              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                <InArgument x:TypeArguments="x:String">TU_ORIGIN</InArgument>
+              </scg:List>
+            </asa2:CreatePoint.PointCodes>
+          </asa2:CreatePoint>
+          <asa2:CreateAuxPoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" PointCodes="{x:Null}" ActivityId="198" ApplyAOR="False" AutoLink="False" DisplayName="AP14" FromPoint="P1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="AP14" Positioning="AngleAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+            <asa2:CreateAuxPoint.Arguments>
+              <InArgument x:TypeArguments="x:String" x:Key="AngleReferencePoint7">None</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="ReverseAngleReference7">False</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="Angle7">90</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY7">[-TrSYOff-TrSThick]</InArgument>
+              <InArgument x:TypeArguments="asw:ElevationTarget" x:Key="ElevationTarget7">[TrSBottom]</InArgument>
+            </asa2:CreateAuxPoint.Arguments>
+          </asa2:CreateAuxPoint>
+          <asa2:CreateAuxPoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" PointCodes="{x:Null}" ActivityId="2" ApplyAOR="False" AutoLink="False" DisplayName="AP1" FromPoint="AP14" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="AP1" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+            <asa2:CreateAuxPoint.Arguments>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-LWXOff]</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+            </asa2:CreateAuxPoint.Arguments>
+          </asa2:CreateAuxPoint>
+          <asa2:CreateAuxPoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" PointCodes="{x:Null}" ActivityId="4" ApplyAOR="False" AutoLink="False" DisplayName="AP3" FromPoint="AP14" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="AP3" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+            <asa2:CreateAuxPoint.Arguments>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[RWXOff]</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+            </asa2:CreateAuxPoint.Arguments>
+          </asa2:CreateAuxPoint>
+          <asa2:CreateAuxPoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" PointCodes="{x:Null}" ActivityId="5" ApplyAOR="False" AutoLink="False" DisplayName="AP4" FromPoint="P1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="AP4" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+            <asa2:CreateAuxPoint.Arguments>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-LWXOff]</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[IntHeight]</InArgument>
+            </asa2:CreateAuxPoint.Arguments>
+          </asa2:CreateAuxPoint>
+          <asa2:CreateAuxPoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" PointCodes="{x:Null}" ActivityId="6" ApplyAOR="False" AutoLink="False" DisplayName="AP5" FromPoint="P1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="AP5" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+            <asa2:CreateAuxPoint.Arguments>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[RWXOff]</InArgument>
+              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[IntHeight]</InArgument>
+            </asa2:CreateAuxPoint.Arguments>
+          </asa2:CreateAuxPoint>
+        </Sequence>
+        <FlowStep.Next>
+          <FlowStep x:Name="__ReferenceID0">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <av:Point x:Key="ShapeLocation">200,184.5</av:Point>
+                <av:Size x:Key="ShapeSize">200,51</av:Size>
+                <av:PointCollection x:Key="ConnectorLocation">300,235.5 300,264.5</av:PointCollection>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+            <Sequence DisplayName="BOTTOM SLAB" sap:VirtualizedContainerService.HintSize="200,51">
+              <sap:WorkflowViewStateService.ViewState>
+                <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                  <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                </scg:Dictionary>
+              </sap:WorkflowViewStateService.ViewState>
+              <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="7" ApplyAOR="False" AutoLink="False" DisplayName="P2" FromPoint="AP1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P2" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreatePoint.Arguments>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-LWThick-BSOff]</InArgument>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                </asa2:CreatePoint.Arguments>
+                <asa2:CreatePoint.PointCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">P_TU_BS_TL</InArgument>
+                  </scg:List>
+                </asa2:CreatePoint.PointCodes>
+              </asa2:CreatePoint>
+              <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="8" ApplyAOR="False" AutoLink="False" DisplayName="P3" FromPoint="P2" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P3" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreatePoint.Arguments>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[-BSThick]</InArgument>
+                </asa2:CreatePoint.Arguments>
+                <asa2:CreatePoint.PointCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">P_TU_BS_BL</InArgument>
+                  </scg:List>
+                </asa2:CreatePoint.PointCodes>
+              </asa2:CreatePoint>
+              <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="9" ApplyAOR="False" AutoLink="False" DisplayName="P4" FromPoint="AP3" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P4" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreatePoint.Arguments>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[RWThick+BSOff]</InArgument>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                </asa2:CreatePoint.Arguments>
+                <asa2:CreatePoint.PointCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">P_TU_BS_TR</InArgument>
+                  </scg:List>
+                </asa2:CreatePoint.PointCodes>
+              </asa2:CreatePoint>
+              <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="10" ApplyAOR="False" AutoLink="False" DisplayName="P5" FromPoint="P4" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P5" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreatePoint.Arguments>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                  <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[-BSThick]</InArgument>
+                </asa2:CreatePoint.Arguments>
+                <asa2:CreatePoint.PointCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">P_TU_BS_BR</InArgument>
+                  </scg:List>
+                </asa2:CreatePoint.PointCodes>
+              </asa2:CreatePoint>
+              <asa2:CreateLink ActivityId="11" ApplyAOR="False" DisplayName="L1" EndPoint="P4" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L1" ShowErrors="True" StartPoint="P2" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreateLink.LinkCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">L_TU_BS_Top</InArgument>
+                  </scg:List>
+                </asa2:CreateLink.LinkCodes>
+              </asa2:CreateLink>
+              <asa2:CreateLink ActivityId="12" ApplyAOR="False" DisplayName="L2" EndPoint="P5" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L2" ShowErrors="True" StartPoint="P4" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreateLink.LinkCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">L_TU_BS_Right</InArgument>
+                  </scg:List>
+                </asa2:CreateLink.LinkCodes>
+              </asa2:CreateLink>
+              <asa2:CreateLink ActivityId="13" ApplyAOR="False" DisplayName="L3" EndPoint="P3" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L3" ShowErrors="True" StartPoint="P5" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreateLink.LinkCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">L_TU_BS_Bottom</InArgument>
+                  </scg:List>
+                </asa2:CreateLink.LinkCodes>
+              </asa2:CreateLink>
+              <asa2:CreateLink ActivityId="14" ApplyAOR="False" DisplayName="L4" EndPoint="P2" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L4" ShowErrors="True" StartPoint="P3" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreateLink.LinkCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">L_TU_BS_Left</InArgument>
+                  </scg:List>
+                </asa2:CreateLink.LinkCodes>
+              </asa2:CreateLink>
+              <asa2:CreateShape ActivityId="15" DisplayName="S1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" Links="L1,L4,L3,L2" ShapeNumber="S1" ShowErrors="True" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                <asa2:CreateShape.ComponentNames>
+                  <x:String>L1</x:String>
+                  <x:String>L4</x:String>
+                  <x:String>L3</x:String>
+                  <x:String>L2</x:String>
+                </asa2:CreateShape.ComponentNames>
+                <asa2:CreateShape.ShapeCodes>
+                  <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                    <InArgument x:TypeArguments="x:String">S_TU_BS</InArgument>
+                  </scg:List>
+                </asa2:CreateShape.ShapeCodes>
+              </asa2:CreateShape>
+            </Sequence>
+            <FlowStep.Next>
+              <FlowStep x:Name="__ReferenceID2">
+                <sap:WorkflowViewStateService.ViewState>
+                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                    <av:Point x:Key="ShapeLocation">200,264.5</av:Point>
+                    <av:Size x:Key="ShapeSize">200,51</av:Size>
+                    <av:PointCollection x:Key="ConnectorLocation">300,315.5 300,354.5</av:PointCollection>
+                  </scg:Dictionary>
+                </sap:WorkflowViewStateService.ViewState>
+                <Sequence DisplayName="TOP SLAB" sap:VirtualizedContainerService.HintSize="200,51">
+                  <sap:WorkflowViewStateService.ViewState>
+                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                    </scg:Dictionary>
+                  </sap:WorkflowViewStateService.ViewState>
+                  <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="16" ApplyAOR="False" AutoLink="False" DisplayName="P6" FromPoint="AP4" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P6" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreatePoint.Arguments>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-LWThick-TSOff]</InArgument>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                    </asa2:CreatePoint.Arguments>
+                    <asa2:CreatePoint.PointCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">P_TU_TS_BL</InArgument>
+                      </scg:List>
+                    </asa2:CreatePoint.PointCodes>
+                  </asa2:CreatePoint>
+                  <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="17" ApplyAOR="False" AutoLink="False" DisplayName="P7" FromPoint="P6" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P7" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreatePoint.Arguments>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[TSThick]</InArgument>
+                    </asa2:CreatePoint.Arguments>
+                    <asa2:CreatePoint.PointCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">P_TU_TS_TL</InArgument>
+                      </scg:List>
+                    </asa2:CreatePoint.PointCodes>
+                  </asa2:CreatePoint>
+                  <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="18" ApplyAOR="False" AutoLink="False" DisplayName="P8" FromPoint="AP5" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P8" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreatePoint.Arguments>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[RWThick+TSOff]</InArgument>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                    </asa2:CreatePoint.Arguments>
+                    <asa2:CreatePoint.PointCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">P_TU_TS_BR</InArgument>
+                      </scg:List>
+                    </asa2:CreatePoint.PointCodes>
+                  </asa2:CreatePoint>
+                  <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="19" ApplyAOR="False" AutoLink="False" DisplayName="P9" FromPoint="P8" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P9" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreatePoint.Arguments>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[TSThick]</InArgument>
+                    </asa2:CreatePoint.Arguments>
+                    <asa2:CreatePoint.PointCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">P_TU_TS_TR</InArgument>
+                      </scg:List>
+                    </asa2:CreatePoint.PointCodes>
+                  </asa2:CreatePoint>
+                  <asa2:CreateLink ActivityId="20" ApplyAOR="False" DisplayName="L5" EndPoint="P9" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L5" ShowErrors="True" StartPoint="P7" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreateLink.LinkCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">L_TU_TS_Top</InArgument>
+                      </scg:List>
+                    </asa2:CreateLink.LinkCodes>
+                  </asa2:CreateLink>
+                  <asa2:CreateLink ActivityId="21" ApplyAOR="False" DisplayName="L6" EndPoint="P8" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L6" ShowErrors="True" StartPoint="P9" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreateLink.LinkCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">L_TU_TS_Right</InArgument>
+                      </scg:List>
+                    </asa2:CreateLink.LinkCodes>
+                  </asa2:CreateLink>
+                  <asa2:CreateLink ActivityId="22" ApplyAOR="False" DisplayName="L7" EndPoint="P6" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L7" ShowErrors="True" StartPoint="P8" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreateLink.LinkCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">L_TU_TS_Bottom</InArgument>
+                      </scg:List>
+                    </asa2:CreateLink.LinkCodes>
+                  </asa2:CreateLink>
+                  <asa2:CreateLink ActivityId="23" ApplyAOR="False" DisplayName="L8" EndPoint="P7" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L8" ShowErrors="True" StartPoint="P6" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreateLink.LinkCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">L_TU_TS_Left</InArgument>
+                      </scg:List>
+                    </asa2:CreateLink.LinkCodes>
+                  </asa2:CreateLink>
+                  <asa2:CreateShape ActivityId="24" DisplayName="S2" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" Links="L5,L6,L7,L8" ShapeNumber="S2" ShowErrors="True" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                    <asa2:CreateShape.ComponentNames>
+                      <x:String>L5</x:String>
+                      <x:String>L6</x:String>
+                      <x:String>L7</x:String>
+                      <x:String>L8</x:String>
+                    </asa2:CreateShape.ComponentNames>
+                    <asa2:CreateShape.ShapeCodes>
+                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                        <InArgument x:TypeArguments="x:String">S_TU_TS</InArgument>
+                      </scg:List>
+                    </asa2:CreateShape.ShapeCodes>
+                  </asa2:CreateShape>
+                </Sequence>
+                <FlowStep.Next>
+                  <FlowStep x:Name="__ReferenceID3">
+                    <sap:WorkflowViewStateService.ViewState>
+                      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                        <av:Point x:Key="ShapeLocation">200,354.5</av:Point>
+                        <av:Size x:Key="ShapeSize">200,51</av:Size>
+                        <av:PointCollection x:Key="ConnectorLocation">300,405.5 300,434.02</av:PointCollection>
+                      </scg:Dictionary>
+                    </sap:WorkflowViewStateService.ViewState>
+                    <Sequence DisplayName="LEFT WALL" sap:VirtualizedContainerService.HintSize="200,51">
+                      <sap:WorkflowViewStateService.ViewState>
+                        <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                          <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                        </scg:Dictionary>
+                      </sap:WorkflowViewStateService.ViewState>
+                      <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="25" ApplyAOR="False" AutoLink="False" DisplayName="P10" FromPoint="AP4" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P10" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreatePoint.Arguments>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                        </asa2:CreatePoint.Arguments>
+                        <asa2:CreatePoint.PointCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">P_TU_LW_TR</InArgument>
+                          </scg:List>
+                        </asa2:CreatePoint.PointCodes>
+                      </asa2:CreatePoint>
+                      <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="26" ApplyAOR="False" AutoLink="False" DisplayName="P11" FromPoint="AP1" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P11" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreatePoint.Arguments>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                        </asa2:CreatePoint.Arguments>
+                        <asa2:CreatePoint.PointCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">P_TU_LW_BR</InArgument>
+                          </scg:List>
+                        </asa2:CreatePoint.PointCodes>
+                      </asa2:CreatePoint>
+                      <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="27" ApplyAOR="False" AutoLink="False" DisplayName="P12" FromPoint="P11" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P12" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreatePoint.Arguments>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-LWThick]</InArgument>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                        </asa2:CreatePoint.Arguments>
+                        <asa2:CreatePoint.PointCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">P_TU_LW_BL</InArgument>
+                          </scg:List>
+                        </asa2:CreatePoint.PointCodes>
+                      </asa2:CreatePoint>
+                      <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="28" ApplyAOR="False" AutoLink="False" DisplayName="P13" FromPoint="AP4" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P13" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreatePoint.Arguments>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-LWThick]</InArgument>
+                          <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                        </asa2:CreatePoint.Arguments>
+                        <asa2:CreatePoint.PointCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">P_TU_LW_TL</InArgument>
+                          </scg:List>
+                        </asa2:CreatePoint.PointCodes>
+                      </asa2:CreatePoint>
+                      <asa2:CreateLink ActivityId="29" ApplyAOR="False" DisplayName="L9" EndPoint="P10" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L9" ShowErrors="True" StartPoint="P13" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreateLink.LinkCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">L_TU_LW_Top</InArgument>
+                          </scg:List>
+                        </asa2:CreateLink.LinkCodes>
+                      </asa2:CreateLink>
+                      <asa2:CreateLink ActivityId="30" ApplyAOR="False" DisplayName="L10" EndPoint="P11" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L10" ShowErrors="True" StartPoint="P10" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreateLink.LinkCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">L_TU_LW_Right</InArgument>
+                          </scg:List>
+                        </asa2:CreateLink.LinkCodes>
+                      </asa2:CreateLink>
+                      <asa2:CreateLink ActivityId="31" ApplyAOR="False" DisplayName="L11" EndPoint="P12" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L11" ShowErrors="True" StartPoint="P11" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreateLink.LinkCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">L_TU_LW_Bottom</InArgument>
+                          </scg:List>
+                        </asa2:CreateLink.LinkCodes>
+                      </asa2:CreateLink>
+                      <asa2:CreateLink ActivityId="32" ApplyAOR="False" DisplayName="L12" EndPoint="P13" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L12" ShowErrors="True" StartPoint="P12" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreateLink.LinkCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">L_TU_LW_Left</InArgument>
+                          </scg:List>
+                        </asa2:CreateLink.LinkCodes>
+                      </asa2:CreateLink>
+                      <asa2:CreateShape ActivityId="33" DisplayName="S3" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" Links="L9,L10,L11,L12" ShapeNumber="S3" ShowErrors="True" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                        <asa2:CreateShape.ComponentNames>
+                          <x:String>L9</x:String>
+                          <x:String>L10</x:String>
+                          <x:String>L11</x:String>
+                          <x:String>L12</x:String>
+                        </asa2:CreateShape.ComponentNames>
+                        <asa2:CreateShape.ShapeCodes>
+                          <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                            <InArgument x:TypeArguments="x:String">S_TU_LW</InArgument>
+                          </scg:List>
+                        </asa2:CreateShape.ShapeCodes>
+                      </asa2:CreateShape>
+                    </Sequence>
+                    <FlowStep.Next>
+                      <FlowStep x:Name="__ReferenceID4">
+                        <sap:WorkflowViewStateService.ViewState>
+                          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                            <av:Point x:Key="ShapeLocation">200,434.02</av:Point>
+                            <av:Size x:Key="ShapeSize">200,51</av:Size>
+                            <av:PointCollection x:Key="ConnectorLocation">300,485.02 300,526.5</av:PointCollection>
+                          </scg:Dictionary>
+                        </sap:WorkflowViewStateService.ViewState>
+                        <Sequence DisplayName="RIGHT WALL" sap:VirtualizedContainerService.HintSize="200,51">
+                          <sap:WorkflowViewStateService.ViewState>
+                            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                            </scg:Dictionary>
+                          </sap:WorkflowViewStateService.ViewState>
+                          <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="34" ApplyAOR="False" AutoLink="False" DisplayName="P14" FromPoint="AP5" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P14" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreatePoint.Arguments>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                            </asa2:CreatePoint.Arguments>
+                            <asa2:CreatePoint.PointCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">P_TU_RW_TL</InArgument>
+                              </scg:List>
+                            </asa2:CreatePoint.PointCodes>
+                          </asa2:CreatePoint>
+                          <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="35" ApplyAOR="False" AutoLink="False" DisplayName="P15" FromPoint="P14" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P15" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreatePoint.Arguments>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[RWThick]</InArgument>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                            </asa2:CreatePoint.Arguments>
+                            <asa2:CreatePoint.PointCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">P_TU_RW_TR</InArgument>
+                              </scg:List>
+                            </asa2:CreatePoint.PointCodes>
+                          </asa2:CreatePoint>
+                          <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="36" ApplyAOR="False" AutoLink="False" DisplayName="P16" FromPoint="AP3" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P16" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreatePoint.Arguments>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">0</InArgument>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                            </asa2:CreatePoint.Arguments>
+                            <asa2:CreatePoint.PointCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">P_TU_RW_BL</InArgument>
+                              </scg:List>
+                            </asa2:CreatePoint.PointCodes>
+                          </asa2:CreatePoint>
+                          <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="37" ApplyAOR="False" AutoLink="False" DisplayName="P17" FromPoint="P16" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P17" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreatePoint.Arguments>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[RWThick]</InArgument>
+                              <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">0</InArgument>
+                            </asa2:CreatePoint.Arguments>
+                            <asa2:CreatePoint.PointCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">P_TU_RW_BR</InArgument>
+                              </scg:List>
+                            </asa2:CreatePoint.PointCodes>
+                          </asa2:CreatePoint>
+                          <asa2:CreateLink ActivityId="38" ApplyAOR="False" DisplayName="L13" EndPoint="P15" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L13" ShowErrors="True" StartPoint="P14" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreateLink.LinkCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">L_TU_RW_Top</InArgument>
+                              </scg:List>
+                            </asa2:CreateLink.LinkCodes>
+                          </asa2:CreateLink>
+                          <asa2:CreateLink ActivityId="39" ApplyAOR="False" DisplayName="L14" EndPoint="P17" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L14" ShowErrors="True" StartPoint="P15" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreateLink.LinkCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">L_TU_RW_Right</InArgument>
+                              </scg:List>
+                            </asa2:CreateLink.LinkCodes>
+                          </asa2:CreateLink>
+                          <asa2:CreateLink ActivityId="40" ApplyAOR="False" DisplayName="L15" EndPoint="P16" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L15" ShowErrors="True" StartPoint="P17" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreateLink.LinkCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">L_TU_RW_Bottom</InArgument>
+                              </scg:List>
+                            </asa2:CreateLink.LinkCodes>
+                          </asa2:CreateLink>
+                          <asa2:CreateLink ActivityId="41" ApplyAOR="False" DisplayName="L16" EndPoint="P14" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L16" ShowErrors="True" StartPoint="P16" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreateLink.LinkCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">L_TU_RW_Left</InArgument>
+                              </scg:List>
+                            </asa2:CreateLink.LinkCodes>
+                          </asa2:CreateLink>
+                          <asa2:CreateShape ActivityId="42" DisplayName="S4" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" Links="L13,L14,L15,L16" ShapeNumber="S4" ShowErrors="True" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                            <asa2:CreateShape.ComponentNames>
+                              <x:String>L13</x:String>
+                              <x:String>L14</x:String>
+                              <x:String>L15</x:String>
+                              <x:String>L16</x:String>
+                            </asa2:CreateShape.ComponentNames>
+                            <asa2:CreateShape.ShapeCodes>
+                              <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                <InArgument x:TypeArguments="x:String">S_TU_RW</InArgument>
+                              </scg:List>
+                            </asa2:CreateShape.ShapeCodes>
+                          </asa2:CreateShape>
+                        </Sequence>
+                        <FlowStep.Next>
+                          <FlowDecision x:Name="__ReferenceID5" Condition="[Excavation=Yes]" sap:VirtualizedContainerService.HintSize="70,87">
+                            <sap:WorkflowViewStateService.ViewState>
+                              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                <av:Point x:Key="ShapeLocation">265,526.5</av:Point>
+                                <av:Size x:Key="ShapeSize">70,87</av:Size>
+                                <av:PointCollection x:Key="TrueConnector">265,570 190,570 190,644.02</av:PointCollection>
+                              </scg:Dictionary>
+                            </sap:WorkflowViewStateService.ViewState>
+                            <FlowDecision.True>
+                              <FlowStep x:Name="__ReferenceID6">
+                                <sap:WorkflowViewStateService.ViewState>
+                                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                    <av:Point x:Key="ShapeLocation">90,644.02</av:Point>
+                                    <av:Size x:Key="ShapeSize">200,51</av:Size>
+                                  </scg:Dictionary>
+                                </sap:WorkflowViewStateService.ViewState>
+                                <Sequence DisplayName="Excavation" sap:VirtualizedContainerService.HintSize="200,51">
+                                  <sap:WorkflowViewStateService.ViewState>
+                                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                    </scg:Dictionary>
+                                  </sap:WorkflowViewStateService.ViewState>
+                                  <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="195" ApplyAOR="False" AutoLink="False" DisplayName="P18" FromPoint="P3" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P18" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                                    <asa2:CreatePoint.Arguments>
+                                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[-ExcXOff]</InArgument>
+                                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[-ExcYOff]</InArgument>
+                                    </asa2:CreatePoint.Arguments>
+                                    <asa2:CreatePoint.PointCodes>
+                                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                        <InArgument x:TypeArguments="x:String">P_TU_EXC_BL</InArgument>
+                                      </scg:List>
+                                    </asa2:CreatePoint.PointCodes>
+                                  </asa2:CreatePoint>
+                                  <asa2:CreatePoint AutoLinkCodes="{x:Null}" AutoLinkGeometryName="{x:Null}" ActivityId="196" ApplyAOR="False" AutoLink="False" DisplayName="P19" FromPoint="P5" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" PointNumber="P19" Positioning="DeltaXAndDeltaY" ShowErrors="True" Side="[Side]" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                                    <asa2:CreatePoint.Arguments>
+                                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaX1">[ExcXOff]</InArgument>
+                                      <InArgument x:TypeArguments="x:Double" x:Key="DeltaY1">[-ExcYOff]</InArgument>
+                                    </asa2:CreatePoint.Arguments>
+                                    <asa2:CreatePoint.PointCodes>
+                                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                        <InArgument x:TypeArguments="x:String">P_TU_EXC_BR</InArgument>
+                                      </scg:List>
+                                    </asa2:CreatePoint.PointCodes>
+                                  </asa2:CreatePoint>
+                                  <asa2:CreateLink ActivityId="197" ApplyAOR="False" DisplayName="L17" EndPoint="P19" Geometry="[Geometry]" sap:VirtualizedContainerService.HintSize="200,22" IsEnabled="True" LinkNumber="L17" ShowErrors="True" StartPoint="P18" SubassemblyErrorCenter="[SubassemblyErrorCenter]" SubassemblyRunMode="[SubassemblyRunMode]">
+                                    <asa2:CreateLink.LinkCodes>
+                                      <scg:List x:TypeArguments="InArgument(x:String)" Capacity="4">
+                                        <InArgument x:TypeArguments="x:String">L_TU_Excavation</InArgument>
+                                        <InArgument x:TypeArguments="x:String">Datum</InArgument>
+                                      </scg:List>
+                                    </asa2:CreateLink.LinkCodes>
+                                  </asa2:CreateLink>
+                                </Sequence>
+                              </FlowStep>
+                            </FlowDecision.True>
+                          </FlowDecision>
+                        </FlowStep.Next>
+                      </FlowStep>
+                    </FlowStep.Next>
+                  </FlowStep>
+                </FlowStep.Next>
+              </FlowStep>
+            </FlowStep.Next>
+          </FlowStep>
+        </FlowStep.Next>
+      </FlowStep>
+    </Flowchart.StartNode>
+    <x:Reference>__ReferenceID0</x:Reference>
+    <x:Reference>__ReferenceID1</x:Reference>
+    <x:Reference>__ReferenceID2</x:Reference>
+    <x:Reference>__ReferenceID3</x:Reference>
+    <x:Reference>__ReferenceID4</x:Reference>
+    <x:Reference>__ReferenceID5</x:Reference>
+    <x:Reference>__ReferenceID6</x:Reference>
+  </Flowchart>
+</Activity>

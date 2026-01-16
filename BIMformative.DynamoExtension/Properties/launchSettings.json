@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "BIMformative.DynamoExtension": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Projects\\DynamoCoreRuntime3.3.0\\DynamoSandbox.exe"
+    }
+  }
+}
