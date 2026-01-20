@@ -94,10 +94,8 @@
                             <!--Load button-->
                             <Button Name="loadButton"
                                     Content="{Binding LoadButtonText}"
-                                    Command="{Binding DownloadCommand}"
-                                    CommandParameter="{Binding}"
+                                    Command="{Binding LoadCommand}"
                                     DockPanel.Dock="Right"
-                                    IsEnabled="True"
                                     Style="{StaticResource loadButton}">
                             </Button>
                             

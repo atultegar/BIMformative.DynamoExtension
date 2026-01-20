@@ -48,7 +48,7 @@ namespace BIMformative.DynamoExtension.Services
             if (!string.IsNullOrWhiteSpace(scriptType))
                 query.Add($"type={scriptType}");
 
-            var url = $"public/v1/scripts?{string.Join("&", query)}";
+            var url = $"/api/public/v1/scripts?{string.Join("&", query)}";
 
             return await GetAsync<PagedResponse<ScriptDto>>(url, cancellationToken);
         }

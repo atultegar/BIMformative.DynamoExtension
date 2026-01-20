@@ -5,6 +5,8 @@ using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.ViewModels.Tabs;
 using BIMformative.DynamoExtension.UI.Views;
+using Dynamo.Extensions;
+using Dynamo.Wpf.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Net.Http;
@@ -17,6 +19,14 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
         private readonly HttpClient _httpClient;
         private readonly IScriptApiClient _api;
         private readonly IAuthService _auth;
+        private readonly IScriptLoadService _loader;
+
+        public enum WindowCloseReason
+        {
+            None,
+            ScriptLoaded
+        }
+
         public ObservableCollection<TabItemViewModel> Tabs { get; }
 
         private TabItemViewModel _selectedTab;
@@ -28,27 +38,36 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
 
         public ICommand CloseCommand { get; }
 
-        public event Action? RequestClose;
+        public event Action<WindowCloseReason>? RequestClose;
 
-        public ScriptManagerViewModel()
+        public ScriptManagerViewModel(IDynamoContext dynamoContext)
         {
-            // Single HttpClient
+            if (dynamoContext == null)
+                throw new ArgumentNullException(nameof(dynamoContext));
+
+            // Initialize services
             _httpClient = new HttpClient
             {
                 
-                BaseAddress = new Uri("http://localhost:3000/api/")
+                BaseAddress = new Uri("http://localhost:3000/")
                 // Production:
-                //BaseAddress = new Uri("https://www.bimformative.com/api/")
+                //BaseAddress = new Uri("https://www.bimformative.com/")
             };
 
             _auth = new AuthService();
 
             // Single API client
             _api = new ScriptApiClient(_httpClient, _auth);
+            _loader = new ScriptLoadService(dynamoContext, _auth, new ScriptDownloadService(_httpClient));
 
+            var searchTab = new SearchTabViewModel(_api, _loader);
+
+            searchTab.RequestClose += OnTabRequestClose;
+
+            // Initialize tabs
             Tabs =
             [
-                new SearchTabViewModel(_api),
+                searchTab,
                 new PublishTabViewModel(_api, _auth),
                 new InstalledTabViewModel(),
                 new MyScriptsTabViewModel(_api, _auth),
@@ -56,12 +75,17 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
             ];
 
             SelectedTab = Tabs[0];
-            CloseCommand = new RelayCommand(() => RequestClose?.Invoke());
+            CloseCommand = new RelayCommand(OnClose);
+        }
+
+        private void OnTabRequestClose()
+        {
+            RequestClose?.Invoke(WindowCloseReason.ScriptLoaded);
         }
 
         private void OnClose()
         {
-            RequestClose?.Invoke();
+            RequestClose?.Invoke(WindowCloseReason.None);
         }
 
         public void Dispose()

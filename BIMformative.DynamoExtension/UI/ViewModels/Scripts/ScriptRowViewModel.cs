@@ -5,6 +5,7 @@ using System.Windows.Input;
 using BIMformative.DynamoExtension.Infrastructure;
 using System;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
+using System.Threading.Tasks;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 {
@@ -12,16 +13,33 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
     {        
         private readonly ScriptDto _script;
 
-        public ScriptRowViewModel(
-            ScriptDto script,
-            ICommand downloadCommand,
-            ICommand versionHistoryCommand)
+        public ScriptRowViewModel(ScriptDto script, Func<ScriptRowViewModel, Task>? loadAction = null, ICommand? versionHistoryCommand = null)
         {
             _script = script ?? throw new ArgumentNullException(nameof(script));
 
-            DownloadCommand = new RelayCommand<object>(_ => downloadCommand?.Execute(this));
-            VersionHistoryCommand = new RelayCommand<object>(_ => versionHistoryCommand?.Execute(this));
+            // Command for loading script
+            LoadCommand = new RelayCommand(async () =>
+            {
+                if (!CanLoad || loadAction == null) return;
 
+                try
+                {
+                    IsLoading = true;
+                    await loadAction(this);
+                    IsLoaded = true;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"Failed to load script: {ex.Message}");
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+
+            });
+
+            VersionHistoryCommand = versionHistoryCommand;
             ToggleExpandCommand = new RelayCommand<object>(_ => IsExpanded = !IsExpanded);
         }
 
@@ -40,7 +58,11 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             set
             {
                 if (SetProperty(ref _isLoaded, value))
-                    OnPropertyChanged(nameof(LoadButtonText));
+                {
+                    RaisePropertyChanged(nameof(LoadButtonText));
+                    RaisePropertyChanged(nameof(CanLoad));
+                }
+                    
             }
         }
 
@@ -55,12 +77,26 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             }
         }
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                if (SetProperty(ref _isLoading, value))
+                {
+                    RaisePropertyChanged(nameof(CanLoad));
+                }
+            }
+        }
 
-        public bool CanLoad => !IsLoaded && !IsDeprecated;
+
+        public bool CanLoad => !IsLoaded && !IsDeprecated && !IsLoading;
 
         public string LoadButtonText =>
             IsLoaded ? "Loaded" :
             IsDeprecated ? "Deprecated" :
+            IsLoading ? "Loading..." :
             "Load";
 
         /* ------------- DISPLAY PROPERTIES -------------*/        
@@ -77,16 +113,19 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         public string ScriptLabel => $"V{_script.Current_Version_Number.ToString()}";
 
         /* ------------- COMMANDS -------------*/
-        public ICommand DownloadCommand { get; }
+        public ICommand LoadCommand { get; }
         public ICommand VersionHistoryCommand { get; }
         public ICommand ToggleExpandCommand { get; }
 
         public void MarkAsLoaded()
         {
             IsLoaded = true;
+            IsLoading = false;
+        }
 
-            RaisePropertyChanged(nameof(CanLoad));
-            RaisePropertyChanged(nameof(LoadButtonText));
+        public ScriptDto GetDto()
+        {
+            return _script; 
         }
     }
 }

@@ -5,6 +5,7 @@ using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using System;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,23 +16,23 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
     public class ScriptsListViewModel : ViewModelBase
     {
         private readonly IScriptApiClient _scriptApiClient;
+        private readonly IScriptLoadService _scriptLoadService;
+        private readonly Func<ScriptRowViewModel, Task> _loadScriptAsync;
+
         private CancellationTokenSource? _cts;
 
         private const int PageSize = 20;
 
-        public ScriptsListViewModel(IScriptApiClient scriptApiClient)
+        public ScriptsListViewModel(IScriptApiClient scriptApiClient, Func<ScriptRowViewModel, Task> loadScripAsync)
         {
             _scriptApiClient = scriptApiClient ?? throw new ArgumentNullException(nameof(scriptApiClient));
+            _loadScriptAsync = loadScripAsync ?? throw new ArgumentNullException(nameof(loadScripAsync));
 
             Scripts = new ObservableCollection<ScriptRowViewModel>();
 
             LoadFirstPageCommand = new RelayCommand(async () => await LoadFirstPageAsync());
             LoadNextPageCommand = new RelayCommand(async () => await LoadNextPageAsync(), () => CanLoadNextPage);
-
             ChangeSortCommand = new RelayCommand<ScriptSortField>(ChangeSort);
-
-            DownloadCommand = new RelayCommand<ScriptRowViewModel>(DownloadScript);
-            VersionHistoryCommand = new RelayCommand<ScriptRowViewModel>(ShowVersions);
         }
 
         /* ------- DATA -------*/
@@ -80,15 +81,12 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         public ICommand LoadNextPageCommand { get; }
         public ICommand ChangeSortCommand { get; }
 
-        public ICommand DownloadCommand { get; }
-        public ICommand VersionHistoryCommand { get; }
 
         /* ------- LOAD -------*/
         
         private async Task LoadFirstPageAsync()
         {
             CancelRequest();
-
             _page = 1;
             _totalPages = 1;
             Scripts.Clear();
@@ -99,7 +97,6 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         private async Task LoadNextPageAsync()
         {
             if (!CanLoadNextPage) return;
-
             await LoadPageAsync(++_page);
         }
 
@@ -132,11 +129,10 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 _totalPages = result.TotalPages;
 
                 foreach (var dto in result.Data)
-                {
+                {                    
                     Scripts.Add(new ScriptRowViewModel(
                         dto,
-                        DownloadCommand,
-                        VersionHistoryCommand));
+                        loadAction: _loadScriptAsync));
                 }
             }
             catch (OperationCanceledException)
@@ -220,6 +216,27 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
             SortField = field;
             LoadFirstPageCommand.Execute(null);
+        }
+
+        private async Task OnLoadScriptAsync(ScriptRowViewModel script)
+        {
+            if (script == null || !script.CanLoad || script.IsLoading) return;
+
+            script.IsLoading = true;
+
+            try
+            {
+                await _scriptLoadService.LoadScriptAsync(script.GetDto(), CancellationToken.None);
+                script.MarkAsLoaded();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to load script: {ex.Message}");
+            }
+            finally
+            {
+                script.IsLoading = false;
+            }
         }
 
     }

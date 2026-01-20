@@ -2,6 +2,12 @@
 using BIMformative.DynamoExtension.UI.Views;
 using System.Windows.Controls;
 using System.Windows;
+using Dynamo.Models;
+using Dynamo.ViewModels;
+using Dynamo.Extensions;
+using Dynamo.Controls;
+using BIMformative.DynamoExtension.Services;
+using System;
 
 namespace BIMformative.DynamoExtension
 {
@@ -14,11 +20,16 @@ namespace BIMformative.DynamoExtension
         private ScriptBrowserView? _browserWindow;
         private ScriptManagerWindow _managerWindow;
         private Window? _dynamoWindow;
+        private DynamoContext _dynamoContext;
 
         public void Loaded(ViewLoadedParams vlp)
         {            
-            _dynamoWindow = vlp.DynamoWindow;
+            _dynamoWindow = vlp.DynamoWindow ?? throw new InvalidOperationException("Dynamo window is null.");
 
+            var dynamoViewModel = _dynamoWindow.DataContext as DynamoViewModel ?? throw new InvalidOperationException("Dynamo DataContext is not a DynamoViewModel");
+
+            _dynamoContext = new DynamoContext(dynamoViewModel, _dynamoWindow);
+            
             CreateMenu(vlp);
         }
 
@@ -58,10 +69,13 @@ namespace BIMformative.DynamoExtension
         {
             if (_managerWindow == null)
             {
+                if (_dynamoContext == null)
+                    throw new InvalidOperationException("DynamoContext is not initialized");
+
                 _managerWindow = new ScriptManagerWindow
                 {
                     Owner = _dynamoWindow,
-                    DataContext = new UI.ViewModels.ScriptManagerViewModel()
+                    DataContext = new UI.ViewModels.ScriptManagerViewModel(_dynamoContext)
                 };                
 
                 _managerWindow.Closed += (_, _) => _managerWindow = null;
