@@ -1,0 +1,205 @@
+﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.Controls.SearchToolbarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BIMformative.DynamoExtension.UI.Views.Controls"
+             xmlns:converters="clr-namespace:BIMformative.DynamoExtension.UI.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="90" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Buttons.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/ContextMenu.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.Resources>
+            <converters:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <DockPanel Grid.Row="0" LastChildFill="True">
+            
+            <!--SORT-->
+            <Button Style="{StaticResource IconButtonStyle}"
+                DockPanel.Dock="Right"
+                Margin="5,0,10,0"
+                    Click="SortButton_Click">
+                <TextBlock Text="&#xE8CB;"
+                       FontFamily="{StaticResource SymbolThemeFontFamily}"                      
+                       FontSize="16"
+           FontWeight="SemiBold"
+           Foreground="#C7C7C7"/>
+                <Button.ContextMenu>
+                    <ContextMenu Style="{StaticResource ContextMenuNoLeftColumnStyle}">
+                        <Separator Style="{StaticResource ContextMenuSeparatorStyle}">
+                            <Separator.Template>
+                                <ControlTemplate TargetType="Separator">
+                                    <StackPanel>
+                                        <TextBlock Text="Sort By" FontSize="10" Margin="5,0"/>
+                                    </StackPanel>
+                                </ControlTemplate>
+                            </Separator.Template>
+                        </Separator>
+
+                        <MenuItem Header="Title"                              
+                              IsCheckable="True"
+                              IsChecked="{Binding SortBy, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=title}"
+                              Command="{Binding SortByCommand}"
+                              CommandParameter="title"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                        <MenuItem Header="Updated At"
+                              IsCheckable="True"
+                              IsChecked="{Binding SortBy, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=updated_at}"
+                              Command="{Binding SortByCommand}"
+                              CommandParameter="updated_at"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                        <MenuItem Header="Downloads"
+                              IsCheckable="True"
+                              IsChecked="{Binding SortBy, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=downloads_count}"
+                              Command="{Binding SortByCommand}"
+                              CommandParameter="downloads_count"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                        <MenuItem Header="Likes"
+                              IsCheckable="True"
+                              IsChecked="{Binding SortBy, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=likes_count}"
+                              Command="{Binding SortByCommand}"
+                              CommandParameter="likes_count"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                        <MenuItem Header="Author"
+                              IsCheckable="True"
+                              IsChecked="{Binding SortBy, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=owner_first_name}"
+                              Command="{Binding SortByCommand}"
+                              CommandParameter="owner_first_name"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                        <Separator Style="{StaticResource ContextMenuSeparatorStyle}">
+                            <Separator.Template>
+                                <ControlTemplate TargetType="Separator">
+                                    <StackPanel>
+                                        <TextBlock Text="Sort Order" FontSize="10" Margin="5,0"/>
+                                    </StackPanel>
+                                </ControlTemplate>
+                            </Separator.Template>
+                        </Separator>
+
+                        <MenuItem Header="Ascending"
+                              IsCheckable="True"
+                              IsChecked="{Binding SortOrder, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=asc}"                                                            
+                              Command="{Binding SortOrderCommand}"
+                              CommandParameter="asc"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                        <MenuItem Header="Descending"
+                              IsCheckable="True"
+                              IsChecked="{Binding SortOrder, Mode=OneWay, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=desc}"                                                            
+                              Command="{Binding SortOrderCommand}"
+                              CommandParameter="desc"
+                              Tag="&#xE8CB;"
+                              Style="{StaticResource DarkContextMenuItemStyle}"/>
+
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+
+            <!--FILTER-->
+            <Button Style="{StaticResource IconButtonStyle}"
+                    DockPanel.Dock="Right"
+                    Margin="5,0,0,0"
+                    Click="FilterButton_Click">
+                <TextBlock Text="&#xE71C;"
+                       FontFamily="{StaticResource SymbolThemeFontFamily}"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#C7C7C7"/>
+                <Button.ContextMenu>
+                    <ContextMenu ItemsSource="{Binding Filters}" Style="{StaticResource ContextMenuNoLeftColumnStyle}">
+                        <ContextMenu.ItemContainerStyle>
+                            <Style TargetType="MenuItem" BasedOn="{StaticResource DarkContextMenuItemStyle}">
+                                <Setter Property="Header" Value="{Binding Header}"/>
+                                <Setter Property="IsCheckable" Value="True"/>
+                                <Setter Property="IsChecked"
+                                    Value="{Binding IsSelected, Mode=TwoWay}"/>
+                                <Setter Property="Tag" Value="&#xE73E;"/>
+                            </Style>
+                        </ContextMenu.ItemContainerStyle>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+
+            <!--SEARCH-->
+            <local:SearchBoxControl
+            SearchText="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5,5,5,0"/>
+
+        </DockPanel>
+        
+        <!--Active Filters / Sort Bar-->
+        <Border Grid.Row="1"
+                Margin="0"
+                Padding="4"
+                Background="Transparent"
+                CornerRadius="3">
+            <DockPanel>                
+                
+                <StackPanel Orientation="Horizontal">
+                    <!--Filters-->
+                    <ItemsControl ItemsSource="{Binding Filters}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#3C3C3C"
+                                        Margin="2"
+                                        Padding="6,2"
+                                        CornerRadius="3"
+                                        Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                        <TextBlock Text="{Binding Header}"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource PrimaryForegroundBrush}"/>
+
+                                        <Button Content="&#xE894;"
+                                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                Foreground="{StaticResource PrimaryForegroundBrush}"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                VerticalAlignment="Center"
+                                                HorizontalContentAlignment="Center"
+                                                Margin="6,0,0,0"
+                                                Width="16"
+                                                Height="16"
+                                                Command="{Binding DataContext.ToggleFilterCommand,
+                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>                
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

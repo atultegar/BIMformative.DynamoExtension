@@ -1,21 +1,142 @@
 ﻿using BIMformative.DynamoExtension.Services.Auth;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.UI.Views;
+using BIMformative.DynamoExtension.Services.Script;
+using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
+using BIMformative.DynamoExtension.UI.Views.Controls;
+using Dynamo.Wpf.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
 {
-    public class MyScriptsTabViewModel : TabItemViewModel
+    public class MyScriptsTabViewModel : TabItemViewModel, IAsyncInitializable, IDisposable
     {
-        public MyScriptsTabViewModel(IScriptApiClient api, IAuthService auth)
+        private readonly IAuthService _auth;
+        private readonly IScriptService _scriptService;
+        private readonly IScriptLoadService _loader;
+        private readonly IScriptCompareService _compareService;
+
+        private bool _initialized;
+        private CancellationTokenSource? _searchCts;
+
+        public ScriptsListViewModel Scripts { get; }
+        
+        public event Action? RequestClose;
+
+        public ICommand CloseDetailsCommand => Scripts.CloseDetailsCommand;
+
+        public MyScriptsTabViewModel(IScriptService scriptService, IAuthService auth, IScriptLoadService loader, IScriptCompareService compareService)
             : base (
                   header: "My Scripts",
-                  contentFactory: () => new MyScriptsControl())
-        {            
+                  contentFactory: () => new MyScriptsControl())                  
+        {
+            if (Content is MyScriptsControl control)
+                control.DataContext = this;
+
+            _auth = auth ?? throw new ArgumentNullException(nameof(auth));
+            _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
+            _loader = loader ?? throw new ArgumentNullException(nameof(loader));
+            _compareService = compareService ?? throw new ArgumentNullException(nameof(compareService));
+
+            Scripts = new ScriptsListViewModel(scriptService, OnLoadScriptAsync, OnViewDetails, loader, _compareService);
+
+            _auth.AuthStateChanged += OnAuthStateChanged;
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (_initialized) 
+                return;
+
+            if (!_auth.IsAuthenticated)
+                return;
+
+            _initialized = true;
+
+            await Scripts.LoadMyScriptsAsync(CancellationToken.None);
+        }
+
+        private async void OnAuthStateChanged(object? sender, EventArgs e)
+        {
+            if (!_auth.IsAuthenticated)
+            {
+                _initialized = false;
+                return;
+            }
+            await InitializeAsync();
+        }
+
+        private string? _searchText;
+        public string? SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                    DebounceSearchAsync(value);
+            }
+        }
+
+        private async void DebounceSearchAsync(string? text)
+        {
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            var token = _searchCts.Token;
+
+            try
+            {
+                await Task.Delay(350, token);
+
+                Scripts.SearchText = text;
+                await Scripts.LoadMyScriptsAsync(token);
+            }
+            catch (TaskCanceledException)
+            {
+
+            }
+        }
+
+        private void OnViewDetails(ScriptRowViewModel script)
+        {
+            // Hook point
+        }
+
+        private async Task OnLoadScriptAsync(ScriptRowViewModel script)
+        {
+            if (script == null) return;
+
+            try
+            {
+                var success = await _loader.LoadScriptAsync(script.GetDto(), CancellationToken.None);
+
+                // User cancelled save dialog -> do nothing
+                if (!success) return;
+
+                // Update row UI state
+                script.MarkAsLoaded();
+
+                // Close ScriptManagerWindow
+                RequestClose?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                MessageBoxService.Show(
+                    $"Failed to load script:\n{ex.Message}",
+                    "BIMformative",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        public void Dispose()
+        {
+            _auth.AuthStateChanged -= OnAuthStateChanged;
+
+            _searchCts?.Cancel();
+            _searchCts?.Dispose();
         }
     }
 }

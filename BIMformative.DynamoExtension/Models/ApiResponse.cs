@@ -8,6 +8,6 @@ namespace BIMformative.DynamoExtension.Models
 {
     public class ApiResponse<T>
     {
-        public List<T> Data { get; set; } = new();
+        public T? Data { get; set; }
     }
 }

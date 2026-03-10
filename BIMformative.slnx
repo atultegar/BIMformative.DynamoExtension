@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="BIMformative.Dynamo.Core/BIMformative.Core.csproj" Id="f865fef3-9eb4-4669-b30a-5cde3d9eb349" />
   <Project Path="BIMformative.DynamoExtension/BIMformative.DynamoExtension.csproj" />
+  <Project Path="BIMformative.Migrator/BIMformative.Migrator.csproj" Id="a378d492-9e21-4964-96c0-6ad8effa850f" />
 </Solution>

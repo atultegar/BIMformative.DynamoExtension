@@ -1,40 +1,244 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using BIMformative.DynamoExtension.Models;
+using BIMformative.DynamoExtension.Services.Interfaces;
+using System;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BIMformative.DynamoExtension.Services.Auth
 {
     public class AuthService : IAuthService
     {
-        public string _accessToken = "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDIyMkFBQSIsImtpZCI6Imluc18ydWpxNlJvbW9Kb1RjcjZjcHZxVVN0MEFhN0wiLCJ0eXAiOiJKV1QifQ.eyJhcHAiOiJkZXNrdG9wIiwiYXpwIjoiaHR0cHM6Ly93d3cuYmltZm9ybWF0aXZlLmNvbSIsImVtYWlsIjoiYXR1bC50ZWdhckBnbWFpbC5jb20iLCJleHAiOjE3Njg5MDgzNjIsImZpcnN0X25hbWUiOiJBdHVsIiwiaWF0IjoxNzY4OTA0NzYyLCJpc3MiOiJodHRwczovL2NsZXJrLmJpbWZvcm1hdGl2ZS5jb20iLCJqdGkiOiIyOTkyYjU2ZmU0MzU0MmEyMDA4MSIsImxhc3RfbmFtZSI6IlRlZ2FyIiwibmJmIjoxNzY4OTA0NzAyLCJzb3VyY2UiOiJiaW1mb3JtYXRpdmUiLCJzdWIiOiJ1c2VyXzJ1bDBURUIyU09Qc3ZYMDlFd0RqSEV4dFRsTSJ9.ghrDCHzlrWfS0PKL_5miNp7ssmPkL6O2w0CEinwExyMV7I3pJHRQMYkRMdE4iOYF8wrQJx-FB9ZuLRMz0HVT_Zkp2bniS4KThgorXLX43Io8qIJr3t31cxmwI16IpvOI7huZKrLNsD9-R0MN-9-ilTgMLsPRu4lbyWvP3EIfO4Mkwn_S6WUejpaXiC9JLJ1RaJ1njUssjabxifgb_GuLO1iH6xScfcH8J5ErCvWGmf-7I2DkPT45o2oKUMBoDktdL1fFRxSWX3nFCwtAD2fV-lhUo0X-NELdx5JExwC_kYCMaTb1-Q2Hc6oM0PlQ-3Mlp3lnWyspOLZcHoMNs6EAmg";
+        private const string SignInPath = "/sign-in";
+        private const string DesktopAuthPath = "/desktop-auth";
+                
+        private readonly HttpClient _http;
+        private readonly IUserApiClient _userApi;
+        private readonly ILocalAuthStore _authStore;
+
+        public string? _accessToken;
         private DateTime _expiresAt;
 
-        public bool IsAuthenticated => !string.IsNullOrEmpty(_accessToken) && !IsTokenExpired;
-        public bool IsTokenExpired => DateTime.Now >= _expiresAt;
+        public UserProfileDto? CurrentUser {  get; private set; }        
+
+        public bool IsAuthenticated => 
+            !string.IsNullOrEmpty(_accessToken) && DateTime.UtcNow < _expiresAt;
+            
+
         public string? AccessToken => _accessToken;
 
         public event EventHandler? AuthStateChanged;
 
+        public AuthService(
+            HttpClient http, 
+            IUserApiClient userApi, 
+            ILocalAuthStore authStore)
+        {
+            _http = http ?? throw new ArgumentNullException(nameof(http));
+            _userApi = userApi ?? throw new ArgumentNullException(nameof(userApi));
+            _authStore = authStore ?? throw new ArgumentNullException(nameof(authStore));
+        }
+
+        // PUBLIC API
+        public async Task RestoreSessionAsync()
+        {
+            await TryRestoreSessionAsync();
+        }
+
+        // CALLED WHEN AUTH IS REQUIRED
         public async Task<bool> EnsureAuthenticatedAsync()
         {
             if (IsAuthenticated)
                 return true;
 
-            return await LoginAsync();
+            if (await TryRestoreSessionAsync())
+                return true;
+
+            return await LoginWithBrowserAsync();
         }
 
-        public Task<bool> LoginAsync()
+        public async Task LogoutAsync()
         {
-            // TODO: OAuth / browser login
-            return Task.FromResult(false);
+            ClearState();
+            await _authStore.ClearAsync();
+            RaiseAuthChanged();
         }
 
-        public Task LogoutAsync()
+        // Session restore
+        private async Task<bool> TryRestoreSessionAsync()
         {
-            return Task.CompletedTask;
+            var cache = await _authStore.LoadAsync();
+            if (cache == null)
+                return false;
+
+            if (DateTime.UtcNow >= cache.ExpiresAt)
+            {
+                await _authStore.ClearAsync();
+                return false;
+            }
+
+            _accessToken = cache.AccessToken;
+            _expiresAt = cache.ExpiresAt;
+            CurrentUser = cache.User;
+
+            RaiseAuthChanged();
+            return true;
+        }
+        
+        private async Task<bool> LoginWithBrowserAsync()
+        {
+            var sessionId = Guid.NewGuid().ToString("N");
+
+            var frontendBase = _http.BaseAddress?.GetLeftPart(UriPartial.Authority)
+                ?? throw new InvalidOperationException("HttpClient BaseAddress not set");
+
+            var redirectUrl =
+                $"{frontendBase}{DesktopAuthPath}?session={sessionId}";
+
+            var signInUrl =
+                $"{frontendBase}{SignInPath}?redirect_url={Uri.EscapeDataString(redirectUrl)}";
+
+            // Open browser
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = signInUrl,
+                UseShellExecute = true
+            });
+
+            // Poll backend for token
+            return await PollForTokenAsync(sessionId);
+        }
+
+        private async Task<bool> PollForTokenAsync(string sessionId)
+        {
+            // 60 seconds max
+            for (int i = 0; i < 60; i++)
+            {
+                await Task.Delay(1000);
+
+                HttpResponseMessage response;                               
+
+                try
+                {
+                    response = await _http.GetAsync(
+                        $"/api/public/v1/desktop-auth/poll?session={sessionId}");
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                    continue;
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+
+                if (doc.RootElement.GetProperty("status").GetString() != "ok")
+                    continue;
+
+                var token = doc.RootElement.GetProperty("token").GetString();
+                if (string.IsNullOrEmpty(token))
+                    return false;
+
+                await CompleteLoginAsync(token);
+                return true;                
+            }
+
+            return false;
+        }
+
+        private async Task CompleteLoginAsync(string token)
+        {
+            _accessToken = token;
+            _expiresAt = ExtractExpiry(token);
+
+            CurrentUser = await _userApi.GetMeAsync(token, CancellationToken.None);
+
+            await _authStore.SaveAsync(new AuthCache
+            {
+                AccessToken = _accessToken!,
+                ExpiresAt = _expiresAt,
+                User = CurrentUser!
+            });
+
+            RaiseAuthChanged();
+        }
+
+        private void ClearState()
+        {
+            _accessToken = null;
+            _expiresAt = DateTime.MinValue;
+            CurrentUser = null;
+        }
+
+        private void RaiseAuthChanged()
+        {
+            AuthStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+
+        private static DateTime ExtractExpiry(string jwt)
+        {
+            // JWT format: header.payload.signature
+            var parts = jwt.Split('.');
+            if (parts.Length != 3)
+                throw new ArgumentException("Invalid JWT format");
+
+            var payload = parts[1];
+
+            // Base64Url -> Base64
+            payload = payload
+                .Replace('-', '+')
+                .Replace("_", "/");
+
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+
+            var jsonBytes = Convert.FromBase64String(payload);
+            var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
+
+            using var doc = JsonDocument.Parse(json);
+
+            if (!doc.RootElement.TryGetProperty("exp", out var expElement))
+                throw new InvalidOperationException("JWT does not contain exp");
+
+            var expSeconds = expElement.GetInt64();
+
+            return DateTimeOffset
+                .FromUnixTimeSeconds(expSeconds)
+                .UtcDateTime;
+        }
+
+        public async Task<string?> CreateWebViewSignInUrlAsync(string redirectPath)
+        {
+            if (!IsAuthenticated) return null;
+
+            var response = await _http.PostAsync("/api/public/v1/desktop-auth/ticket", null);
+
+            if (!response.IsSuccessStatusCode) return null;
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var doc = JsonDocument.Parse(json);
+
+            var ticket = doc.RootElement.GetProperty("ticket").GetString();
+            if(string.IsNullOrEmpty(ticket)) return null;
+
+            var frontendBase = _http.BaseAddress?.GetLeftPart(UriPartial.Authority)
+                ?? throw new InvalidOperationException("HttpClient BaseAddress not set");
+
+            var url =
+                $"{frontendBase}/desktop-auth/exchange" +
+                $"?ticket={ticket}" +
+                $"&redirect={Uri.EscapeUriString(redirectPath)}";
+
+            return url;
         }
     }
-
 }

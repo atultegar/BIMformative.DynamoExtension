@@ -1,22 +1,350 @@
-﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.PublishControl"
+﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.Controls.PublishControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIMformative.DynamoExtension.UI.Views"
+             xmlns:converters="clr-namespace:BIMformative.DynamoExtension.UI.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Brushes.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/ScrollBar.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Buttons.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/TextBox.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/ComboBox.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/CheckBox.xaml"/>
+            </ResourceDictionary.MergedDictionaries>            
+
+            <Style x:Key="LabelStyle" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="#DCDCDC" />
+                <Setter Property="Margin" Value="0,12,0,4" />
+            </Style>
+
+            <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+                <Setter Property="OverridesDefaultStyle" Value="False"/>
+                <Setter Property="Margin" Value="0,5" />
+                <Setter Property="Background" Value="#2F2E30" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Padding" Value="5,10" />
+                <Setter Property="BorderBrush" Value="#444"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+
+            <Style x:Key="RadioButtonStyle" TargetType="RadioButton">
+                <Setter Property="Margin" Value="0,5,12,0"/>
+                <Setter Property="Foreground" Value="#C7C7C7"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!--Bullet-->
+                                <Grid Width="16" Height="16" Margin="0,0,6,0">
+                                    <Ellipse Stroke="{TemplateBinding BorderBrush}"
+                                             StrokeThickness="{TemplateBinding BorderThickness}"
+                                             Fill="Transparent"/>
+                                    <Ellipse x:Name="CheckedDot"
+                                             Width="8"
+                                             Height="8"
+                                             Fill="{TemplateBinding BorderBrush}"
+                                             Visibility="Collapsed"/>
+                                </Grid>
+                                <ContentPresenter VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="CheckedDot" Property="Visibility" Value="Visible"/>
+                                    <Setter Property="Foreground" Value="#EEEEEE"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Background="{StaticResource ControlsBackgroundBrush}">
-        <TextBlock Text="Publish Script"
-                   Foreground="{StaticResource PrimaryForegroundBrush}"
-                   Margin="10"
-                   FontSize="20"/>
-    </Grid>
+
+    <Border BorderBrush="{StaticResource BorderBrushWithOpacity}" BorderThickness="1">
+        <Grid Background="{StaticResource ControlsBackgroundBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="60"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <!--LEFT : Script metadata-->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer.Resources>
+                    <Style TargetType="ScrollBar" BasedOn="{StaticResource StylishScrollBar}"/>
+                </ScrollViewer.Resources>
+
+                <StackPanel Margin="10">
+
+                    <TextBlock Text="Title" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource TextBoxStyle}"/>
+
+                    <TextBlock Text="Description" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding Description, Mode=TwoWay}"
+                         Style="{StaticResource TextBoxStyle}"
+                         AcceptsReturn="True"
+                         Height="80"/>
+
+                    <TextBlock Text="Script Type" Style="{StaticResource LabelStyle}"/>
+
+                    <ItemsControl ItemsSource="{Binding ScriptTypes}"
+                                  Margin="0,12,0,4">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Content="{Binding}"
+                                             GroupName="ScriptTypeGroup"
+                                             Margin="0,0,12,0"
+                                             Style="{StaticResource RadioButtonStyle}"
+                                             Command="{Binding DataContext.SelectScriptTypeCommand,
+                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                             CommandParameter="{Binding}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+
+                    <TextBlock Text="Demo Link" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding DemoLink, Mode=TwoWay}"
+                         Style="{StaticResource TextBoxStyle}"/>
+                    
+                    <TextBlock Text="Tags" Style="{StaticResource LabelStyle}"/>
+
+                    <Border Background="#0C0A09"                            
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="6"
+                            Height="40"
+                            Margin="0,5">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="BorderBrush" Value="#7eb4ea"/>
+                                        <Setter Property="Cursor" Value="IBeam"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="False">
+                                        <Setter Property="BorderBrush" Value="#292524"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <WrapPanel VerticalAlignment="Center">
+                            
+                            <!--Existing Tags-->
+                            <ItemsControl ItemsSource="{Binding Tags}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="4"
+                                                Background="#292524"
+                                                Padding="8,4"
+                                                Margin="0,0,6,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding}"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource PrimaryForegroundBrush}" 
+                                                           FontSize="12"
+                                                           FontWeight="Medium"/>
+                                                <Button Content="✕"
+                                                        Cursor="Hand"
+                                                        Margin="6,0,0,0"
+                                                        Padding="0"
+                                                        Width="16"
+                                                        Height="16"
+                                                        FontSize="10"
+                                                        Command="{Binding DataContext.RemoveTagCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Foreground="{StaticResource PrimaryForegroundBrush}"/>
+                                            </StackPanel>                                            
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                            <!--Input Box-->
+                            <TextBox Text="{Binding NewTag, UpdateSourceTrigger=PropertyChanged}"
+                                     KeyDown="TagTextBox_KeyDown"
+                                     Width="120"
+                                     Foreground="White"
+                                     Background="#0C0A09"
+                                     BorderThickness="0"
+                                     Cursor="IBeam"
+                                     VerticalAlignment="Center"/>
+                        </WrapPanel>
+                    </Border>
+                               
+                    <Border Background="Transparent"
+                            BorderThickness="1"
+                            BorderBrush="#292524"
+                            Margin="0,12,0,4"
+                            Height="100"
+                            CornerRadius="4">
+                        <StackPanel Margin="10" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" 
+                                        VerticalAlignment="Center">
+                                <CheckBox Style="{StaticResource ModernToggleSwitch}"
+                                          IsChecked="{Binding IsPublic, Mode=TwoWay}"/>
+                                <TextBlock Text="Public"
+                                           VerticalAlignment="Center"
+                                           Foreground="#DCDCDC"
+                                           FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Margin="10,0,10,0"/>
+                                                             
+                            </StackPanel>
+
+                            <TextBlock Text="Public scripts are visible to everyone. Private scripts are visible only to you."
+                                       HorizontalAlignment="Left"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       Foreground="#d32f2f"
+                                       Margin="0,10,0,0"/>
+                        </StackPanel>
+                        
+                        
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!--Divider-->
+            <Border Grid.Column="1" Background="#444" Width="1"/>
+
+            <!--RIGHT : Upload + Analyze-->
+            <StackPanel Grid.Column="2" Margin="20,50,20,20">
+                <Button Height="120"
+                    Command="{Binding UploadScriptCommand}"
+                    Style="{StaticResource ButtonOutline}"
+                    BorderThickness="0"
+                    BorderBrush="Transparent"
+                    Padding="0"                        
+                        AllowDrop="True"
+                        Drop="UploadZone_Drop">
+                    <Button.Content>
+                        <Border Width="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=ActualWidth}"
+                            Height="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=ActualHeight}"
+                            BorderThickness="1"
+                            CornerRadius="8">
+                            <Border.BorderBrush>
+                                <VisualBrush>
+                                    <VisualBrush.Visual>
+                                        <Rectangle Stroke="#78716C"
+                                               AllowDrop="True"
+                                               StrokeThickness="4"
+                                               StrokeDashArray="2,1"
+                                               Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualWidth}"
+                                               Height="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualHeight}"/>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Border.BorderBrush>
+                            <StackPanel VerticalAlignment="Center"
+                                    HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding ShowFileName, TargetNullValue='No file selected'}"
+                                       Foreground="#C7C7C7"
+                                       FontSize="12"
+                                       Margin="0,0,0,8"
+                                       HorizontalAlignment="Center"/>
+                                <Rectangle Width="30"
+                                       Height="30"
+                                       Margin="0,0,0,4">
+                                    <Rectangle.Fill>
+                                        <ImageBrush ImageSource="/BIMformative.DynamoExtension;component/UI/Assets/cloud-upload-white.png"/>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <TextBlock Text="Click to upload"
+                                           Foreground="#C7C7C7"
+                                           FontSize="12"
+                                           Margin="0,0,0,4"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text=".dyn only"
+                                           Foreground="#C7C7C7"
+                                           FontSize="10"
+                                           FontWeight="Regular"
+                                           Margin="0,0,0,8"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Button.Content>
+                </Button>
+
+                <Button Content="{Binding AnalyzeButtonText, FallbackValue=Analyze}"
+                    Style="{StaticResource ButtonDefaultShadcn}"
+                    Width="120"
+                    Command="{Binding AnalyzeScriptCommand}"
+                    Margin="0,20,0,0"
+                    IsEnabled="{Binding CanAnalyze}"/>
+
+                <Border Margin="0,10,0,0" BorderThickness="0,0,0,1" BorderBrush="#78716C"/>
+                
+                <TextBlock Margin="0,5" Text="or" Foreground="#C7C7C7" HorizontalAlignment="Center"/>
+
+                <Button Content="{Binding AnalyzeWrokspaceButtonText, FallbackValue=Analyze Current Script}"
+                        Command="{Binding AnalyzeWorkspaceCommand}"
+                        Style="{StaticResource ButtonSecondary}"
+                        Margin="0,10,0,0"
+                        Width="175"/>
+            </StackPanel>
+
+            <!--Bottom actions-->
+            <StackPanel Grid.Row="1"
+                    Grid.ColumnSpan="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="0,10,10,0">
+
+                <Button Content="Cancel"
+                    Style="{StaticResource ButtonSecondary}"
+                    Width="100"
+                    Command="{Binding CancelCommand}"
+                    Margin="0,0,10,0"/>
+
+                <Button Content="{Binding PublishButtonText, FallbackValue=Publish}"
+                    Style="{StaticResource ButtonDefaultShadcn}"
+                    Width="100"
+                    Command="{Binding PublishCommand}"
+                    IsEnabled="{Binding CanPublish}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+
 </UserControl>

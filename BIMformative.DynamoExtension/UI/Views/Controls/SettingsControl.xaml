@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.SettingsControl"
+﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.Controls.SettingsControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,7 +6,61 @@
              xmlns:local="clr-namespace:BIMformative.DynamoExtension.UI.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/ScrollBar.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Buttons.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Brushes.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/TextBox.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border BorderBrush="{StaticResource BorderBrushWithOpacity}" BorderThickness="1">
+        <Grid Background="{StaticResource ControlsBackgroundBrush}">
+            <StackPanel Margin="15,6"
+                HorizontalAlignment="Stretch"
+                Orientation="Vertical">
+                <TextBlock Text="Download Settings"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Margin="0,5,0,20"
+                   Foreground="#E5E5E5"/>
+
+                <TextBlock Text="Default Script Save Location"
+                   FontSize="14"
+                   FontWeight="SemiBold"
+                   Foreground="#E5E5E5"
+                   Opacity="0.9"/>
+
+                <DockPanel Margin="0,6,0,0">
+                    <Button Content="Browse"
+                    Style="{StaticResource ButtonDefaultShadcn}"
+                    Height="25"
+                    Width="100"
+                    Command="{Binding BrowsePathCommand}"
+                    DockPanel.Dock="Right"
+                    Margin="8,0,0,0"/>
+
+                    <TextBox Text="{Binding DefaultScriptSavePath}"
+                     Style="{StaticResource TextBoxStyle}"
+                     IsReadOnly="True"/>
+                </DockPanel>
+
+                <CheckBox Content="Ask before overwriting existing scripts"
+                  IsChecked="{Binding AskBeforeOverwrite}"
+                  Margin="0,16,0,0"
+                  FontSize="14"
+                  FontWeight="SemiBold"
+                  Foreground="#E5E5E5"/>
+
+                <Button Content="Reset to default"
+                Style="{StaticResource ButtonSecondary}"
+                Command="{Binding ResetPathCommand}"
+                Margin="0,16,0,0"
+                HorizontalAlignment="left"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </UserControl>

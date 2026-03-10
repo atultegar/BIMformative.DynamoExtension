@@ -1,4 +1,4 @@
-﻿using BIMformative.DynamoExtension.Models;
+﻿using BIMformative.DynamoExtension.Models.Scripts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +11,7 @@ namespace BIMformative.DynamoExtension.Services.Interfaces
     public interface IScriptDownloadService
     {
         Task<string> DownloadAsync(ScriptDto script, string accessToken, CancellationToken ct);
+
+        Task<string> GetScriptCurrentHash(ScriptDto script);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BIMformative.DynamoExtension.Services.Interfaces;
+using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Search;
-using BIMformative.DynamoExtension.UI.Views;
+using BIMformative.DynamoExtension.UI.Views.Controls;
 using System;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
@@ -12,9 +13,10 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         public event Action? RequestClose;
 
         public SearchTabViewModel(
-            IScriptApiClient api, 
-            IScriptLoadService loader)
-            : this(new SearchViewModel(api, loader))
+            IScriptService scriptService, 
+            IScriptLoadService loader,
+            IScriptCompareService scriptCompareService)
+            : this(new SearchViewModel(scriptService, loader, scriptCompareService))
         {            
         }
 

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BIMformative.DynamoExtension.UI.Views
+namespace BIMformative.DynamoExtension.UI.Views.Controls
 {
     /// <summary>
     /// Interaction logic for MyScriptsControl.xaml

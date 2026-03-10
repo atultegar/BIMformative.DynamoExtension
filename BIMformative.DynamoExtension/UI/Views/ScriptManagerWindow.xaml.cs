@@ -1,5 +1,6 @@
 ﻿using BIMformative.DynamoExtension.UI.ViewModels;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,10 +21,12 @@ namespace BIMformative.DynamoExtension.UI.Views
         }
 
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        // Change the OnLoaded method to match the RoutedEventHandler delegate (void return type)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is ScriptManagerViewModel vm)
             {
+                await vm.InitializeAsync();
                 vm.RequestClose += OnRequestClose;
             }
         }

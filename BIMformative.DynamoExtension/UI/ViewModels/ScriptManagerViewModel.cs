@@ -2,30 +2,63 @@
 using BIMformative.DynamoExtension.Services;
 using BIMformative.DynamoExtension.Services.Auth;
 using BIMformative.DynamoExtension.Services.Interfaces;
+using BIMformative.DynamoExtension.Services.Script;
+using BIMformative.DynamoExtension.Services.Settings;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.ViewModels.Tabs;
-using BIMformative.DynamoExtension.UI.Views;
-using Dynamo.Extensions;
-using Dynamo.Wpf.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels
 {
-    public class ScriptManagerViewModel : ViewModelBase, IDisposable
+    public sealed class ScriptManagerViewModel : ViewModelBase, IDisposable
     {
-        private readonly HttpClient _httpClient;
-        private readonly IScriptApiClient _api;
-        private readonly IAuthService _auth;
-        private readonly IScriptLoadService _loader;
+        // ----------------------------------------------------------------
+        // Fields
+        // ----------------------------------------------------------------
 
-        public enum WindowCloseReason
+        private readonly IAuthService _auth;
+        private readonly IScriptApiClient _api;        
+        private readonly IScriptLoadService _loader;
+        private readonly ISettingsService _settings;
+        private readonly IScriptAnalyzeService _scriptAnalyzeService;
+        private readonly IScriptService _scriptService;
+        private readonly IDownloadedScriptsService _downloadedScriptsService;
+        private readonly IScriptCompareService _scriptCompareService;
+
+        // ----------------------------------------------------------------
+        // Commands
+        // ----------------------------------------------------------------
+        public ICommand SignInCommand { get; }
+        public ICommand SignOutCommand { get; }
+        public ICommand CloseCommand { get; }
+
+        // ----------------------------------------------------------------
+        // Authentication-bound properties
+        // ----------------------------------------------------------------
+        private bool _isAuthenticated;
+        public bool IsAuthenticated
         {
-            None,
-            ScriptLoaded
+            get => _isAuthenticated;
+            private set => SetProperty(ref _isAuthenticated, value);
         }
+
+        public string UserName =>
+            _auth.CurrentUser?.FullName ?? "Unknown User";
+
+        public string AvatarUrl =>
+            _auth.CurrentUser?.Avatarurl 
+            ?? "pack://application:,,,/BIMformative.DynamoExtension;component/UI/Assets/avatar-placeholder.png";
+
+        public string Email =>
+            _auth.CurrentUser?.Email ?? "user@bimformative.com";
+
+        // ----------------------------------------------------------------
+        // Tabs
+        // ----------------------------------------------------------------
 
         public ObservableCollection<TabItemViewModel> Tabs { get; }
 
@@ -33,52 +66,126 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
         public TabItemViewModel SelectedTab
         {
             get => _selectedTab;
-            set => SetProperty(ref _selectedTab, value);
+            set
+            {
+                if (SetProperty(ref _selectedTab, value))
+                {
+                    if (value is IAsyncInitializable asyncVm)
+                        _ = asyncVm.InitializeAsync();
+                }
+            }
         }
 
-        public ICommand CloseCommand { get; }
+        // ----------------------------------------------------------------
+        // Window close signalling
+        // ----------------------------------------------------------------
+        public enum WindowCloseReason
+        {
+            None,
+            ScriptLoaded
+        }
 
         public event Action<WindowCloseReason>? RequestClose;
 
-        public ScriptManagerViewModel(IDynamoContext dynamoContext)
+        // ----------------------------------------------------------------
+        // Constructor
+        // ----------------------------------------------------------------
+        public ScriptManagerViewModel(
+            IAuthService auth,
+            IScriptApiClient api,
+            IScriptLoadService loader,
+            ISettingsService settings,
+            IScriptAnalyzeService scriptAnalyzeService,
+            IScriptService scriptService,
+            IDownloadedScriptsService downloadedScriptService,
+            IScriptCompareService scriptCompareService)
         {
-            if (dynamoContext == null)
-                throw new ArgumentNullException(nameof(dynamoContext));
+            _auth = auth ?? throw new ArgumentNullException(nameof(auth));
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+            _loader = loader ?? throw new ArgumentNullException(nameof(loader));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _scriptAnalyzeService = scriptAnalyzeService ?? throw new ArgumentNullException(nameof(scriptAnalyzeService));
+            _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
+            _downloadedScriptsService = downloadedScriptService ?? throw new ArgumentNullException(nameof(downloadedScriptService));
+            _scriptCompareService = scriptCompareService ?? throw new ArgumentNullException(nameof(scriptCompareService));
 
-            // Initialize services
-            _httpClient = new HttpClient
+            // Commands
+            SignInCommand = new AsyncRelayCommand(SignInAsync);
+            SignOutCommand = new AsyncRelayCommand(SignOut);
+            CloseCommand = new RelayCommand(OnClose);
+                        
+            _auth.AuthStateChanged += OnAuthStateChanged;
+            
+            // Tabs
+            var searchTab = new SearchTabViewModel(_scriptService, _loader, _scriptCompareService);
+            searchTab.RequestClose += OnScriptLoaded;
+
+            var installedTab = new InstalledTabViewModel(_downloadedScriptsService, _loader, _scriptCompareService);
+            installedTab.RequestClose += OnScriptLoaded;
+
+
+            Tabs = new ObservableCollection<TabItemViewModel>
             {
-                
-                BaseAddress = new Uri("http://localhost:3000/")
-                // Production:
-                //BaseAddress = new Uri("https://www.bimformative.com/")
+                searchTab,
+                new PublishTabViewModel(_auth, _scriptService),
+                installedTab,
+                new MyScriptsTabViewModel(_scriptService, _auth, _loader, _scriptCompareService),
+                new SettingsTabViewModel(_settings)
             };
 
-            _auth = new AuthService();
-
-            // Single API client
-            _api = new ScriptApiClient(_httpClient, _auth);
-            _loader = new ScriptLoadService(dynamoContext, _auth, new ScriptDownloadService(_httpClient));
-
-            var searchTab = new SearchTabViewModel(_api, _loader);
-
-            searchTab.RequestClose += OnTabRequestClose;
-
-            // Initialize tabs
-            Tabs =
-            [
-                searchTab,
-                new PublishTabViewModel(_api, _auth),
-                new InstalledTabViewModel(),
-                new MyScriptsTabViewModel(_api, _auth),
-                new SettingsTabViewModel()
-            ];
-
             SelectedTab = Tabs[0];
-            CloseCommand = new RelayCommand(OnClose);
+
+            // Initial UI sync (CRITICAL)
+            SyncAuthStateToUI();
+            
         }
 
-        private void OnTabRequestClose()
+        // ----------------------------------------------------------------
+        // Initialization
+        // ----------------------------------------------------------------
+        public async Task InitializeAsync()
+        {
+            await _auth.RestoreSessionAsync();
+            
+            SyncAuthStateToUI();
+        }
+
+        // ----------------------------------------------------------------
+        // Auth handling
+        // ----------------------------------------------------------------
+        private void OnAuthStateChanged(object? sender, EventArgs e)
+        {
+            SyncAuthStateToUI();
+        }
+
+        private void SyncAuthStateToUI()
+        {
+            IsAuthenticated = _auth.IsAuthenticated;
+
+            RaisePropertyChanged(nameof(IsAuthenticated));
+            RaisePropertyChanged(nameof(UserName));
+            RaisePropertyChanged(nameof(AvatarUrl));
+            RaisePropertyChanged(nameof(Email));
+        }
+
+        
+
+        private async Task SignInAsync()
+        {
+            await _auth.EnsureAuthenticatedAsync();
+            SyncAuthStateToUI();
+        }
+
+        private async Task SignOut()
+        {
+            await _auth.LogoutAsync();
+            SyncAuthStateToUI();
+        }
+
+        // ----------------------------------------------------------------
+        // Window control
+        // ----------------------------------------------------------------
+        private void OnScriptLoaded()
         {
             RequestClose?.Invoke(WindowCloseReason.ScriptLoaded);
         }
@@ -88,6 +195,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
             RequestClose?.Invoke(WindowCloseReason.None);
         }
 
+        // ----------------------------------------------------------------
+        // Cleanup
+        // ----------------------------------------------------------------
         public void Dispose()
         {
             foreach (var tab in Tabs)
@@ -96,7 +206,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
                     disposable.Dispose();
             }
 
-            _httpClient.Dispose();
+            _auth.AuthStateChanged -= OnAuthStateChanged;
         }
     }
 }

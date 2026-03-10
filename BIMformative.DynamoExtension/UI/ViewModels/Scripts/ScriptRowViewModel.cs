@@ -1,11 +1,11 @@
-﻿using BIMformative.DynamoExtension.Models;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
-using BIMformative.DynamoExtension.Infrastructure;
-using System;
+﻿using BIMformative.DynamoExtension.Infrastructure;
+using BIMformative.DynamoExtension.Models.Scripts;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
+using BIMformative.DynamoExtension.Utils;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 {
@@ -13,7 +13,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
     {        
         private readonly ScriptDto _script;
 
-        public ScriptRowViewModel(ScriptDto script, Func<ScriptRowViewModel, Task>? loadAction = null, ICommand? versionHistoryCommand = null)
+        public ScriptRowViewModel(ScriptDto script, Func<ScriptRowViewModel, Task>? loadAction, Action<ScriptRowViewModel> viewDetailsAction)
         {
             _script = script ?? throw new ArgumentNullException(nameof(script));
 
@@ -39,8 +39,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
             });
 
-            VersionHistoryCommand = versionHistoryCommand;
             ToggleExpandCommand = new RelayCommand<object>(_ => IsExpanded = !IsExpanded);
+            ViewDetailsCommand = new RelayCommand(() =>
+                viewDetailsAction?.Invoke(this));
         }
 
         /* ------------- UI STATE -------------*/
@@ -101,14 +102,14 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
         /* ------------- DISPLAY PROPERTIES -------------*/        
         public string Title => _script.Title;
+        public string Slug => _script.Slug;
         public string Description => _script.Description;
         public string OwnerFullName => $"{_script.Owner_First_Name} {_script.Owner_Last_Name}";
         public int LikesCount => _script.Likes_Count;
         public int DownloadsCount => _script.Downloads_Count;
         public string ScriptType => Utils.Utils.ToTitleCase(_script.Script_Type);
         public int CurrentVersionNumber => _script.Current_Version_Number;
-        public DateTime UpdatedAt => _script.Updated_At;
-        public string UpdatedAtDisplay => UpdatedAt.ToString("dd/MMM/yyyy");
+        public string UpdatedAt => TimeAgoHelper.Format(_script.Updated_At);
 
         public string ScriptLabel => $"V{_script.Current_Version_Number.ToString()}";
 
@@ -116,6 +117,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         public ICommand LoadCommand { get; }
         public ICommand VersionHistoryCommand { get; }
         public ICommand ToggleExpandCommand { get; }
+        public ICommand ViewDetailsCommand { get; }
 
         public void MarkAsLoaded()
         {

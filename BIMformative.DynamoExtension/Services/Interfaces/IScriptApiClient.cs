@@ -1,4 +1,6 @@
 ﻿using BIMformative.DynamoExtension.Models;
+using BIMformative.DynamoExtension.Models.Scripts;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,10 +19,15 @@ namespace BIMformative.DynamoExtension.Services.Interfaces
             CancellationToken cancellationToken = default);
 
         // SCRIPT DETAILS
-        Task<ScriptDto> GetScriptBySlugAsync(
+        Task<ScriptDetailsDto> GetScriptBySlugAsync(
             string slug,
             CancellationToken cancellationToken = default);
-        
+
+        Task<IReadOnlyList<ScriptVersionDto>> GetScriptVersionsAsync(
+            string slug,
+            CancellationToken ct = default);
+
+
         //Task<PagedResponse<ScriptVersionDto>> GetScriptVersionsAsync(
         //    string slug,
         //    int page = 1,

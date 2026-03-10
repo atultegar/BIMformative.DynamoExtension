@@ -1,9 +1,16 @@
 ﻿using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Models;
 using BIMformative.DynamoExtension.Services.Interfaces;
+using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -13,20 +20,46 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
 {
     public class SearchViewModel : ViewModelBase, IDisposable
     {
-        private readonly IScriptApiClient _api;
+        private readonly IScriptService _scriptService;
         private readonly IScriptLoadService _loader;
+        private readonly IScriptCompareService _compareService;
+
         public ScriptsListViewModel Scripts { get; }
 
         private CancellationTokenSource? _searchCts;
+        public event Action? RequestClose;
 
-        public SearchViewModel(IScriptApiClient api, IScriptLoadService loader)
+        public ICommand CloseDetailsCommand => Scripts.CloseDetailsCommand;
+
+        public ObservableCollection<FilterItemViewModel> Filters { get; } = new();
+
+        public IEnumerable<string> SelectedFilters =>
+            Filters.Where(x => x.IsSelected)
+            .Select(x => x.Name);
+
+        public SearchViewModel(IScriptService scriptService, IScriptLoadService loader, IScriptCompareService compareService)
         {
-            _api = api ?? throw new ArgumentNullException(nameof(api));
+            _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
+            _compareService = compareService ?? throw new ArgumentNullException(nameof(compareService));
+            
+            Filters.Add(new FilterItemViewModel("revit", "Revit"));
+            Filters.Add(new FilterItemViewModel("civil3d", "Civil 3D"));
 
-            Scripts = new ScriptsListViewModel(_api, OnLoadScriptAsync);
+            Scripts = new ScriptsListViewModel(_scriptService, OnLoadScriptAsync, OnViewDetails, loader, _compareService);
 
             Scripts.LoadFirstPageCommand.Execute(null);
+            SortByCommand = new RelayCommand<string>(SetSortBy);
+            SortOrderCommand = new RelayCommand<string>(SetSortOrder);
+
+            ClearFiltersCommand = new RelayCommand(ClearFilters);
+            ClearSortCommand = new RelayCommand(ClearSort);
+            ToggleFilterCommand = new RelayCommand<FilterItemViewModel>(ToggleFilter);
+
+            foreach (var f in Filters)
+            {
+                f.FilterChanged += OnFilterChanged;
+            }
         }
 
         private string? _searchText;
@@ -52,13 +85,69 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
             {
                 await Task.Delay(350, token); // debounce delay
 
-                Scripts.SearchText = text;
-                await Scripts.LoadFirstPageAsync(token);
+                await ReloadScriptsAsync();
             }
             catch (TaskCanceledException)
             {
 
             }
+        }
+
+        private ScriptSortField _sortBy = ScriptSortField.updated_at;
+        public ScriptSortField SortBy
+        {
+            get => _sortBy;
+            set
+            {
+                if (SetProperty(ref _sortBy, value))
+                    _ = ReloadScriptsAsync();
+            }
+        }
+
+        private SortOrder _sortOrder = Models.SortOrder.desc;
+        public SortOrder SortOrder
+        {
+            get => _sortOrder;
+            set 
+            {
+                if (SetProperty(ref _sortOrder, value))
+                    _ = ReloadScriptsAsync();
+            }
+        }
+
+        private async Task ReloadScriptsAsync()
+        {
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+
+            try
+            {
+                Scripts.SearchText = SearchText;
+                Scripts.SortField = SortBy;
+                Scripts.SortOrder = SortOrder;
+
+                // Apply selected filters
+                var selected = SelectedFilters?.ToList();
+
+                if (selected != null && selected.Any())
+                    Scripts.ScriptType = selected.First();
+
+                await Scripts.LoadFirstPageAsync(_searchCts.Token);
+            }
+            catch (TaskCanceledException) 
+            {
+                // expected when user types quickly
+            }
+        }
+
+        private void SetSortBy(string sort)
+        {
+            SortBy = Enum.Parse<ScriptSortField>(sort);
+        }
+
+        private void SetSortOrder(string order)
+        {
+            SortOrder = Enum.Parse<SortOrder>(order);
         }
 
         public ICommand SortByLikesCommand =>
@@ -70,8 +159,19 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
         public ICommand SortByDownloadsCommand =>
             new RelayCommand(() => Scripts.ChangeSortCommand.Execute(ScriptSortField.downloads_count));
 
-        public event Action? RequestClose;
+        public ICommand SortByCommand { get;}
+        public ICommand SortOrderCommand { get;}
+        public ICommand ClearFiltersCommand { get;}
+        public ICommand ClearSortCommand { get;}
+        public ICommand ToggleFilterCommand { get;}
+               
 
+        private void OnViewDetails(ScriptRowViewModel script)
+        {
+            // Hook point for analytics / logging later
+            // UI state already handled by ScriptsListViewModel
+        }
+        
         private async Task OnLoadScriptAsync(ScriptRowViewModel script)
         {
             if (script == null) return;
@@ -97,8 +197,6 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Error);
             }
-
-            await _loader.LoadScriptAsync(script.GetDto(), CancellationToken.None);
         }
 
         public void Initialize()
@@ -112,5 +210,55 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
             _searchCts?.Dispose();            
         }
 
+        private void ClearFilters()
+        {
+            foreach (var f in Filters)
+                f.IsSelected = false;
+
+            _ = ReloadScriptsAsync();
+        }
+
+        private void ClearSort()
+        {
+            SortBy = ScriptSortField.updated_at;
+            SortOrder = SortOrder.desc;
+
+            _ = ReloadScriptsAsync();
+        }
+
+        private void ToggleFilter(FilterItemViewModel filter)
+        {
+            if (filter == null)
+                return;
+
+            filter.IsSelected = false;
+
+            UpdateScriptFilters();
+
+            _ = ReloadScriptsAsync();
+        }
+
+        private void UpdateScriptFilters()
+        {
+            var selected = Filters
+                .Where(f => f.IsSelected)
+                .Select(f => f.Header)
+                .ToList();
+
+            if (!selected.Any())
+            {
+                Scripts.ScriptType = null;
+                return;
+            }
+
+            Scripts.ScriptType = selected.First();
+        }
+
+        private void OnFilterChanged(FilterItemViewModel filter)
+        {
+            UpdateScriptFilters();
+
+            _ = ReloadScriptsAsync();
+        }
     }
 }

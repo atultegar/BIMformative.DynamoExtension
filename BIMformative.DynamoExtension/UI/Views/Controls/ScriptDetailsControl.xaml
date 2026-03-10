@@ -1,0 +1,426 @@
+﻿<UserControl x:Class="BIMformative.DynamoExtension.UI.Views.Controls.ScriptDetailsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BIMformative.DynamoExtension.UI.Views.Controls" 
+             xmlns:scripts="clr-namespace:BIMformative.DynamoExtension.UI.ViewModels.Scripts"
+             xmlns:converters="clr-namespace:BIMformative.DynamoExtension.UI.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" 
+             d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Brushes.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/ScrollBar.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Fonts.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Buttons.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/DataGrid.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="BorderStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="3"/>
+                <Setter Property="Margin" Value="0,0,11,0"/>
+                <Setter Property="Background" Value="#535353"/>
+                <Setter Property="Padding" Value="8,0"/>
+                <Setter Property="Height" Value="22"/>                
+            </Style>
+
+            <Style x:Key="LabelStyle" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="MinWidth" Value="200"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="Margin" Value="0,0,0,5"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+
+            <Style x:Key="BodyTextStyle" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="Regular"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryForegroundBrush}"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="Margin" Value="0,0,0,5"/>
+                <Setter Property="TextWrapping" Value="Wrap"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.Resources>
+            <converters:ViewStateToVisibilityConverter x:Key="ViewStateVisibility"/>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!--HEADER-->
+        <DockPanel Margin="0,0,0,12">
+            <Rectangle Width="16"
+                       Height="16"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center">
+                <Rectangle.Fill>
+                    <ImageBrush ImageSource="/BIMformative.DynamoExtension;component/UI/Assets/more-details-white.png"/>
+                </Rectangle.Fill>
+                
+            </Rectangle>
+            <TextBlock Text="Script Details"
+                       Margin="6,0,0,0"
+                       FontSize="14"
+                       FontWeight="Regular"
+                       VerticalAlignment="Center"
+                       Foreground="{StaticResource PrimaryForegroundBrush}"/>
+            
+            <!--Close Button-->
+            <Button Width="24"
+                    Height="24"
+                    Margin="0,0,17,0"
+                    HorizontalAlignment="Right"
+                    DockPanel.Dock="Right"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    ToolTip="Close"
+                    Click="CloseButton_Click">
+                <TextBlock Text="✕"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource PrimaryForegroundBrush}"/>
+            </Button>
+        </DockPanel>
+
+        <!--Loading State-->
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding CurrentState,
+              Converter={StaticResource ViewStateVisibility},
+              ConverterParameter=Loading}">
+            <TextBlock Text="Loading details..."
+                       FontSize="14"
+                       Foreground="{StaticResource SecondaryBrush}"
+                       FontWeight="SemiBold"/>            
+        </StackPanel>
+
+        <!--Empty State-->
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding CurrentState,
+            Converter={StaticResource ViewStateVisibility},
+            ConverterParameter=Empty}">
+            <TextBlock Text="No details available..."
+                       FontSize="14"
+                       Foreground="#C7C7C7"
+                       FontWeight="SemiBold"/>
+        </StackPanel>
+
+        <!--Error State-->
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding CurrentState,
+            Converter={StaticResource ViewStateVisibility},
+            ConverterParameter=Error}">
+            <TextBlock Text="Something went wrong."
+                       FontSize="14"
+                       Foreground="#E7000B"
+                       FontWeight="SemiBold"/>
+        </StackPanel>
+
+        <!--API Error State-->
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding CurrentState,
+            Converter={StaticResource ViewStateVisibility},
+            ConverterParameter=ApiUnavailable}">
+            <TextBlock Text="BIMformative server is unreachable."
+                       FontSize="14"
+                       Foreground="#E7000B"
+                       FontWeight="SemiBold"/>
+        </StackPanel>
+        
+        <!--CONTENT-->
+        <ScrollViewer Grid.Row="1"
+                      Margin="17"
+                      VerticalScrollBarVisibility="Visible"
+                      Visibility="{Binding CurrentState,
+                                    Converter={StaticResource ViewStateVisibility},
+                                    ConverterParameter=Loaded}">
+            <ScrollViewer.Resources>
+                <Style TargetType="ScrollBar" BasedOn="{StaticResource StylishScrollBar}"/>
+            </ScrollViewer.Resources>
+            
+            <StackPanel x:Name="mainStackPanel">
+                
+                <!-- Package Name -->
+                <StackPanel MinWidth="200"
+                            Margin="0,0,0,10"
+                            Orientation="Horizontal">
+                    <TextBlock Width="Auto"
+                               Text="{Binding Title}"
+                               FontFamily="{StaticResource BIMFont}"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource PrimaryForegroundBrush}" />
+
+                    <Border Width="Auto"
+                            Height="20"
+                            Margin="7,0,7,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Background="Transparent"
+                            BorderBrush="#5F5F5F"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                        <TextBlock Margin="3,0"
+                                   Padding="0,1,0,0"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{StaticResource BIMFont}"
+                                   FontSize="11"
+                                   Foreground="#DFDFDF"
+                                   Text="{Binding CurrentVersionNumber}"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Author -->
+                <StackPanel MinWidth="200"
+                            Margin="0,0,0,10"
+                            Orientation="Horizontal">
+
+                    <Ellipse Width="24"
+                             Height="24"
+                             Margin="0,0,4,0"
+                             Stroke="#E5E5E5"
+                             StrokeThickness="1" >
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="{Binding Owner_Avatar_Url}"
+                                        Stretch="UniformToFill"/>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <TextBlock Text="{Binding OwnerFullName}"
+                               Margin="8,0,0,0"
+                               FontFamily="{StaticResource BIMFont}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#C7C7C7"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                
+                <!-- Icons for Likes, Downloads and Update Date -->
+                <StackPanel MinWidth="200"
+                            Margin="0,0,0,10"
+                            Orientation="Horizontal">
+                    <!-- Likes -->
+                    <Button Tag="/BIMformative.DynamoExtension;component/UI/Assets/thumbs-up.png"
+                            Content="{Binding LikesCount}"
+                            Command="{Binding LikeCommand}"
+                            Padding="8,0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource IconCountButton}">
+                                <Setter Property="Background" Value="#535353"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasLiked}" Value="True">
+                                        <Setter Property="Background" Value="#84D7CE"/>
+                                        <Setter Property="Foreground" Value="#111827"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>                             
+                        </Button.Style>
+                    </Button>
+
+                    <!-- Likes -->
+                    <Button Style="{StaticResource IconCountButton}"
+                            Tag="/BIMformative.DynamoExtension;component/UI/Assets/download-icon.png"
+                            Content="{Binding DownloadsCount}"
+                            Command="{Binding LoadCommand}"
+                            Background="#535353"
+                            Padding="8,0"/>
+
+                    <!-- Updated Date -->
+                    <Border Style="{StaticResource BorderStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Width="16" 
+                                       Height="16"
+                                       Margin="0,0,6,0"
+                                       VerticalAlignment="Center">
+                                <Rectangle.Fill>
+                                    <ImageBrush ImageSource="/BIMformative.DynamoExtension;component/UI/Assets/clock-icon.png"
+                                                Opacity="0.85"/>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <TextBlock FontSize="12"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Foreground="Black"
+                                       Text="{Binding UpdatedAt}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Script Type -->
+                <Border Style="{StaticResource BorderStyle}" Width="80" Margin="0,20" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Width="16" 
+                                   Height="16"
+                                   Margin="0,0,6,0"
+                                   VerticalAlignment="Center">
+                            <Rectangle.Fill>
+                                <ImageBrush ImageSource="/BIMformative.DynamoExtension;component/UI/Assets/workflow.png"
+                                            Opacity="0.85"/>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <TextBlock FontSize="12"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Foreground="Black"
+                                   Text="{Binding ScriptType}"/>
+                    </StackPanel>
+                </Border>
+
+                <!--Description-->
+                <TextBlock Style="{StaticResource LabelStyle}"
+                           Text="DESCRIPTION"/>
+                <TextBlock MinWidth="200"
+                           Margin="0,0,0,20"
+                           FontSize="14"
+                           Style="{StaticResource BodyTextStyle}"
+                           Text="{Binding Description}" />
+                
+                <!--Tags-->
+                <TextBlock Style="{StaticResource LabelStyle}"
+                           Text="TAGS"/>
+
+                <ItemsControl ItemsSource="{Binding Tags}" Margin="0,0,0,20">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border x:Name="tagBorder" Style="{StaticResource BorderStyle}">
+                                <TextBlock Text="{Binding}"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           FontSize="12"
+                                           Foreground="{StaticResource PrimaryForegroundBrush}"/>                                
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                
+                <!-- DynamoVersion -->
+                <TextBlock Style="{StaticResource LabelStyle}"
+                           Text="DYNAMO VERSION"/>
+                <TextBlock MinWidth="200"
+                           Margin="0,0,0,20"
+                           FontSize="14"
+                           Style="{StaticResource BodyTextStyle}"
+                           Text="{Binding DynamoVersion}" />
+
+                <!-- DynamoVersion -->
+                <TextBlock Style="{StaticResource LabelStyle}"
+                           Text="DYNAMO PLAYER READY"/>
+                <TextBlock MinWidth="200"
+                           Margin="0,0,0,20"
+                           FontSize="14"
+                           Style="{StaticResource BodyTextStyle}"
+                           Text="{Binding IsPlayerReady}" />
+
+                <!--External Packages-->
+                <TextBlock Style="{StaticResource LabelStyle}"
+                           Text="EXTERNAL PACKAGES"/>
+
+                <ItemsControl ItemsSource="{Binding ExternalPackages}" Margin="0,0,0,20">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <TextBlock Text="•"
+                                           Margin="0,0,6,0"
+                                           FontSize="14"
+                                           Foreground="{StaticResource SecondaryBrush}"/>
+                                <TextBlock Text="{Binding}"
+                                           FontSize="13"
+                                           Foreground="{StaticResource PrimaryForegroundBrush}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Versions -->
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource LabelStyle}"
+                               Text="VERSIONS"
+                               VerticalAlignment="Center"/>
+                    
+                    <Button Content="Compare Versions"
+                            Command="{Binding CompareVersionCommand}"
+                            IsEnabled="{Binding CanCompare}"
+                            Style="{StaticResource IconCountButton}"
+                            Tag="/BIMformative.DynamoExtension;component/UI/Assets/git-compare-white.png"
+                            Foreground="#C7C7C7"
+                            Background="#535353"
+                            VerticalAlignment="Center"
+                            Margin="5,0"/>
+                </StackPanel>
+                
+                <DataGrid x:Name="VersionsGrid"
+                          ItemsSource="{Binding Versions}"
+                          SelectionChanged="VersionsGrid_SelectionChanged"
+                          Style="{StaticResource ShadcnDataGrid}"
+                          ColumnHeaderStyle="{StaticResource ShadcnDataGridColumnHeader}"
+                          RowStyle="{StaticResource ShadcnDataGridRow}"
+                          CellStyle="{StaticResource ShadcnDataGridCell}"
+                          Margin="0,12,0,20"
+                          AutoGenerateColumns="False">
+                    <DataGrid.Resources>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Setter Property="IsSelected" Value="{Binding Path=IsSelected, Mode=TwoWay}"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Version"
+                                            Binding="{Binding VersionNumber}"
+                                            Width="60"/>
+                        <DataGridTextColumn Header="Change Log"
+                                            Binding="{Binding ChangeLog}"
+                                            Width="*"/>
+                        <DataGridTextColumn Header="Updated At"
+                                            Binding="{Binding UpdatedAt}"
+                                            Width="90"/>
+                        <DataGridTemplateColumn Header="Current"
+                                                Width="50">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding IsCurrent}"
+                                               FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                               Foreground="#22C55E"
+                                               HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>                    
+                </DataGrid>                              
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -238,5 +238,301 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <!--Base Button Style - shadcn-->
+    <Style x:Key="BaseButtonStyleShadcn" TargetType="Button">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="MinHeight" Value="40"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Border"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="6"
+                        SnapsToDevicePixels="True">
+                        <ContentPresenter
+                        Margin="{TemplateBinding Padding}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <!-- Hover -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border"
+                                Property="Opacity"
+                                Value="0.9"/>
+                        </Trigger>
+
+                        <!-- Pressed -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Border"
+                                Property="Opacity"
+                                Value="0.8"/>
+                        </Trigger>
+
+                        <!-- Disabled -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Border"
+                                Property="Opacity"
+                                Value="0.5"/>
+                        </Trigger>
+                        
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ButtonDefaultShadcn"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyleShadcn}">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style x:Key="ButtonDestructive"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyleShadcn}">
+        <Setter Property="Background" Value="#DC2626"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style x:Key="ButtonOutline"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyleShadcn}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#111827"/>
+        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style x:Key="ButtonSecondary"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyleShadcn}">
+        <Setter Property="Background" Value="#E5E7EB"/>
+        <Setter Property="Foreground" Value="#111827"/>
+    </Style>
+
+    <Style x:Key="ButtonGhost"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyleShadcn}">
+        <Setter Property="Background" Value="AliceBlue"/>
+        <Setter Property="Foreground" Value="#111827"/>
+    </Style>
+
+    <Style x:Key="ButtonLink"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyle}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#2563EB"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="TextBlock.TextDecorations" Value="Underline"/>
+    </Style>
+
+    <Style x:Key="ButtonImage"
+           TargetType="Button"
+           BasedOn="{StaticResource BaseButtonStyleShadcn}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Grid x:Name="container" Background="Transparent">
+                        <Grid x:Name="inner" Background="DimGray">
+                            <Image x:Name="display"
+                                   Width="24"
+                                   Height="24"
+                                   Source="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Tag}" />
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="ToggleButton.IsMouseOver" Value="True">
+                            <Setter TargetName="inner" Property="Background" Value="LightBlue" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>                
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="IconCountButton"
+           TargetType="Button"
+           BasedOn="{StaticResource BaseButtonStyleShadcn}">
+
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="3"
+                            Padding="{TemplateBinding Padding}"
+                            Height="22"
+                            Margin="0,0,11,0">
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center">
+                            
+                            <!-- ICON -->
+                            <Rectangle Width="16"
+                                       Height="16"
+                                       Margin="0,0,6,0"
+                                       VerticalAlignment="Center"
+                                       Visibility="Visible">
+                                <Rectangle.Fill>
+                                    <ImageBrush ImageSource="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                                Opacity="0.85"/>
+                                </Rectangle.Fill>                                
+                            </Rectangle>                            
+                            
+                            <!-- COUNT -->
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       Foreground="{TemplateBinding Foreground}" />
+                        </StackPanel>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        
+                        <!--Hover-->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root"
+                                    Property="Background"
+                                    Value="#1FFFFFFF" />
+                        </Trigger>
+
+                        <!--Pressed-->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root"
+                                    Property="Background"
+                                    Value="#2FFFFFFF" />
+                            <Setter Property="Opacity" Value="0.9"/>
+                        </Trigger>
+
+                        <!--Disabled-->
+                        <Trigger Property="IsEnabled" Value="False">                            
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                    
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ContextMenuButton"
+       TargetType="Button"
+       BasedOn="{StaticResource BaseButtonStyleShadcn}">
+
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="3"
+                        Padding="{TemplateBinding Padding}"
+                        Height="22"
+                        Margin="0,0,11,0">                        
+                        <Rectangle Width="16"
+                                   Height="16"
+                                   Margin="0"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Visibility="Visible">
+                            <Rectangle.Fill>
+                                <ImageBrush ImageSource="/BIMformative.DynamoExtension;component/UI/Assets/ellipsis-vertical-white.png"
+                                            Opacity="0.85"/>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+
+                        <!--Hover-->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root"
+                                Property="Background"
+                                Value="#1FFFFFFF" />
+                        </Trigger>
+
+                        <!--Pressed-->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root"
+                                Property="Background"
+                                Value="#2FFFFFFF" />
+                            <Setter Property="Opacity" Value="0.9"/>
+                        </Trigger>
+
+                        <!--Disabled-->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="IconButtonStyle" TargetType="Button">
+
+        <Setter Property="Width" Value="22"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Root" 
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="3"
+                            Padding="{TemplateBinding Padding}">
+
+                        <ContentPresenter
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="#1FFFFFFF"/>
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Root" Property="Background" Value="#2FFFFFFF"/>
+                            <Setter Property="Opacity" Value="0.9"/>
+                        </Trigger>
+
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 
 </ResourceDictionary>

@@ -13,13 +13,18 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BIMformative.DynamoExtension.UI.Views
+namespace BIMformative.DynamoExtension.UI.Views.Controls
 {
     /// <summary>
     /// Interaction logic for SearchBoxControl.xaml
     /// </summary>
     public partial class SearchBoxControl : UserControl
     {
+        public SearchBoxControl()
+        {
+            InitializeComponent();
+        }
+
         public static readonly DependencyProperty SearchTextProperty =
         DependencyProperty.Register(
             nameof(SearchText),
@@ -27,7 +32,8 @@ namespace BIMformative.DynamoExtension.UI.Views
             typeof(SearchBoxControl),
             new FrameworkPropertyMetadata(
                 string.Empty,
-                FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+                FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+                OnSearchTextChanged));
 
         public string SearchText
         {
@@ -35,26 +41,22 @@ namespace BIMformative.DynamoExtension.UI.Views
             set => SetValue(SearchTextProperty, value);
         }
 
-        public SearchBoxControl()
+        public static void OnSearchTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            InitializeComponent();
-        }
+            var control = (SearchBoxControl)d;
 
-        private void SearchBox_OnKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            UpdateWatermark();
-        }
+            var text = e.NewValue as string;
 
-        private void OnSearchClearButtonClicked(object sender, MouseButtonEventArgs e)
-        {
-            this.SearchTextbox.Clear();
+            control.ClearButton.Visibility =
+                string.IsNullOrEmpty(text)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
-        private void UpdateWatermark()
+        
+
+        private void ClearSearch_Click(object sender, RoutedEventArgs e)
         {
-            SearchTextBoxWatermark.Visibility = 
-                string.IsNullOrEmpty(SearchText)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            SearchText = string.Empty;
         }
     }
 }

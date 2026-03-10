@@ -23,6 +23,7 @@
                 <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Buttons.xaml" />
                 <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Tab.xaml" />
                 <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Image.xaml" />
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/ContextMenu.xaml" />
             </ResourceDictionary.MergedDictionaries>
             
             <!--Toast Animation-->
@@ -65,7 +66,7 @@
                                  GradientOrigin="0.5,-0.2"
                                  RadiusX="0.8"
                                  RadiusY="0.8">
-                    <GradientStop Color="#7877C6" Offset="0" />
+                    <GradientStop Color="#383854" Offset="0" />
                     <GradientStop Color="#FF000000" Offset="1" />
                 </RadialGradientBrush>
             </Border.Background>
@@ -147,14 +148,99 @@
 
                         <!--Login Button-->
                         <Border Grid.Row="1"
-                            BorderThickness="0"
-                            Padding="12">
-                            <Button Content="Sign in"
-                                Width="150"
-                                Height="25"
-                                FontFamily="{StaticResource BIMFont}"
-                                FontSize="13"
-                                Style="{StaticResource BIMPrimaryButton}" />
+                                Padding="12"
+                                Background="#141414"
+                                CornerRadius="0,0,0,6">
+                            
+                            
+                            <Grid>
+                                <!--SIGN IN BUTTON-->
+                                <Button Content="Sign in"
+                                        Command="{Binding SignInCommand}">
+                                    <Button.Style>
+                                        <Style TargetType="Button"
+                                               BasedOn="{StaticResource ButtonSecondary}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsAuthenticated}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                
+                                <!--USER PROFILE-->
+                                <Button ContextMenuService.Placement="Top">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ButtonGhost}">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Setter Property="ContextMenu">
+                                                <Setter.Value>
+                                                    <ContextMenu Style="{StaticResource DarkContextMenuStyle}">
+                                                        <MenuItem Header="Sign out" Command="{Binding SignOutCommand}" />
+                                                    </ContextMenu>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsAuthenticated}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="DimGray"/>
+                                                </Trigger>
+
+                                                <EventTrigger RoutedEvent="Click">
+                                                    <EventTrigger.Actions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="ContextMenu.IsOpen">
+                                                                    <DiscreteBooleanKeyFrame KeyTime="0:0:0" Value="True" />
+                                                                </BooleanAnimationUsingKeyFrames>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>                                                        
+                                                    </EventTrigger.Actions>
+                                                </EventTrigger>
+                                            </Style.Triggers>                                            
+                                        </Style>                                        
+                                    </Button.Style>
+                                    <Button.Content>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="44" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse Grid.Column="0"
+                                                     Width="32"
+                                                     Height="32"
+                                                     Margin="0,0,4,0"
+                                                     Stroke="#E5E5E5"
+                                                     StrokeThickness="1" >
+                                                <Ellipse.Fill>
+                                                    <ImageBrush ImageSource="{Binding AvatarUrl}"
+                                                                Stretch="UniformToFill"/>
+                                                </Ellipse.Fill>
+                                            </Ellipse>
+                                            <StackPanel Grid.Column="1" Orientation="Vertical" MinWidth="400" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding UserName}"
+                                                           FontFamily="{StaticResource BIMFont}"
+                                                           FontSize="13"
+                                                           Foreground="#E5E5E5"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Email}" 
+                                                           FontSize="11" 
+                                                           FontWeight="Regular" 
+                                                           FontFamily="{StaticResource BIMFont}" 
+                                                           Foreground="#E5E5E5"
+                                                           Opacity="0.9"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            
+                                        </Grid>
+                                    </Button.Content>
+                                </Button>
+                            </Grid>                            
                         </Border>
                     </Grid>
                     <ContentPresenter Grid.Column="1"

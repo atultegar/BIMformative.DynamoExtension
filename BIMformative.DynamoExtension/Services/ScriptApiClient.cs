@@ -6,22 +6,27 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
+using BIMformative.DynamoExtension.Models.Scripts;
 
 namespace BIMformative.DynamoExtension.Services
 {
     public class ScriptApiClient : IScriptApiClient
     {
-        private readonly HttpClient _http;
+        private const string PublicApiRoot = "/api/public/v1";
+        private const string AuthApiRoot = "/api/v1";
+        
+        private readonly HttpClient _authHttp;
+        private readonly HttpClient _publicHttp;
         private readonly IAuthService _auth;
 
-        public ScriptApiClient(HttpClient http, IAuthService auth)
+        public ScriptApiClient(HttpClient authHttp, HttpClient publicHttp, IAuthService auth)
         {
-            _http = http ?? throw new ArgumentNullException(nameof(http));
-            _auth = auth;
+            _authHttp = authHttp ?? throw new ArgumentNullException(nameof(authHttp));
+            _publicHttp = publicHttp ?? throw new ArgumentNullException(nameof(publicHttp));
+            _auth = auth ?? throw new ArgumentNullException(nameof(auth));
         }
 
         // PUBLIC SEARCH
@@ -48,26 +53,49 @@ namespace BIMformative.DynamoExtension.Services
             if (!string.IsNullOrWhiteSpace(scriptType))
                 query.Add($"type={scriptType}");
 
-            var url = $"/api/public/v1/scripts?{string.Join("&", query)}";
+            var url = $"scripts?{string.Join("&", query)}";
 
-            return await GetAsync<PagedResponse<ScriptDto>>(url, cancellationToken);
+            return await GetAsync<PagedResponse<ScriptDto>>(_publicHttp, url, cancellationToken);
         }
 
-        public async Task<ScriptDto> GetScriptBySlugAsync(
+        public async Task<ScriptDetailsDto> GetScriptBySlugAsync(
             string slug,
             CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(slug))
                 throw new ArgumentException("Slug cannot be empty.", nameof(slug));
 
-            return await GetAsync<ScriptDto>($"public/v1/scripts/{slug}", cancellationToken);
+            var url = $"scripts/{slug}";
+
+            // Use the generic GET helper
+            var response = await GetAsync<ApiResponse<ScriptDetailsDto>>(_authHttp, url, cancellationToken);
+
+            return response.Data
+                ?? throw new InvalidOperationException($"Script not found for slug '{slug}'");
         }
 
-        private async Task<T> GetAsync<T>(string url, CancellationToken ct)
+        public async Task<IReadOnlyList<ScriptVersionDto>> GetScriptVersionsAsync(
+            string slug,
+            CancellationToken ct = default)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            if (string.IsNullOrWhiteSpace(slug)) throw new ArgumentException("Slug cannot be empty.", nameof(slug));
 
-            if (_auth.IsAuthenticated)
+            var url = $"scripts/{slug}/versions";
+
+            // Use the generic GET helper
+            var wrapper = await GetAsync<ApiListResponse<ScriptVersionDto>>(_authHttp, url, ct);
+
+            if (wrapper?.Data == null)
+                throw new InvalidOperationException($"Versions not found");
+
+            return wrapper.Data;
+        }
+
+        private async Task<T> GetAsync<T>(HttpClient client, string relativeUrl, CancellationToken ct)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, relativeUrl);
+
+            if (_auth.IsAuthenticated && !string.IsNullOrEmpty(_auth.AccessToken))
             {
                 request.Headers.Authorization =
                     new AuthenticationHeaderValue("Bearer", _auth.AccessToken);
@@ -75,15 +103,21 @@ namespace BIMformative.DynamoExtension.Services
 
             try
             {
-                using var response = await _http.GetAsync(url, ct);
+                using var response = await client.SendAsync(request, ct);
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    var content = await response.Content.ReadAsStringAsync(ct);
                     throw new HttpRequestException(
-                        $"API returned {(int)response.StatusCode} - {response.ReasonPhrase}");
+                        $"API returned {(int)response.StatusCode} - {response.ReasonPhrase}. Content: {content}");
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<T>(cancellationToken: ct);
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var result = await response.Content.ReadFromJsonAsync<T>(options, ct);
 
                 if (result == null)
                     throw new InvalidOperationException("Empty response form API");
@@ -100,11 +134,10 @@ namespace BIMformative.DynamoExtension.Services
             }
             catch (Exception ex)
             {
-                throw new ApiUnavailableException(
-                    "Unexpected error while contacting BIMformative API.",
-                    ex);
-            }
-            
+                throw new ApiUnavailableException("Unexpected error while contacting BIMformative API.", ex);
+            }            
         }
+
+        
     }
 }

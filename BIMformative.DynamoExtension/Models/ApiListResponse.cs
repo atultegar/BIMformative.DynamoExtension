@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BIMformative.DynamoExtension.Services.Api.Interfaces
+namespace BIMformative.DynamoExtension.Models
 {
-    public interface ISearchScriptsApi
+    public class ApiListResponse<T>
     {
-       
+        public List<T> Data { get; set; } = new();
     }
 }

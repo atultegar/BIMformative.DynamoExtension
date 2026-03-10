@@ -17,6 +17,9 @@
     <SolidColorBrush x:Key="PrimaryForegroundBrush"
                      Color="{StaticResource PrimaryForegroundColor}" />
 
+    <SolidColorBrush x:Key="MutedForegroundBrush"
+                 Color="{StaticResource MutedForegroundColor}" />
+
     <SolidColorBrush x:Key="BorderBrush"
                      Color="{StaticResource BorderColor}" />
 
@@ -29,5 +32,14 @@
 
     <SolidColorBrush x:Key="ControlsBackgroundBrush"
                      Color="{StaticResource ControlsBackground}" />
+
+    <SolidColorBrush x:Key="DataGridBackgroundBrush" Color="#0F172A"/>
+    <SolidColorBrush x:Key="DataGridHeaderBrush" Color="#020617"/>
+    <SolidColorBrush x:Key="DataGridRowHoverBrush" Color="#1E293B"/>
+    <SolidColorBrush x:Key="DataGridRowSelectedBrush" Color="#334155"/>
+    
+    <SolidColorBrush x:Key="DataGridBorderBrush" Color="#1E293B"/>
+    <SolidColorBrush x:Key="DataGridTextBrush" Color="#E5E7EB"/>
+    <SolidColorBrush x:Key="DataGridMutedTextBrush" Color="#94A3B8"/>
 
 </ResourceDictionary>

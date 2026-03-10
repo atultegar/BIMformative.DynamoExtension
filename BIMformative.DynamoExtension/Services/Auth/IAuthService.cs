@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BIMformative.DynamoExtension.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,19 +10,26 @@ namespace BIMformative.DynamoExtension.Services.Auth
     public interface IAuthService
     {
         bool IsAuthenticated { get; }
-        bool IsTokenExpired { get; }
         string? AccessToken { get; }
+        UserProfileDto? CurrentUser { get; }
 
         event EventHandler? AuthStateChanged;
 
         /// <summary>
-        /// Ensures the use is authenticated.
+        /// Ensures authentication
         /// Show login UI only if required.
         /// </summary>
-        /// <returns></returns>
         Task<bool> EnsureAuthenticatedAsync();
-        Task<bool> LoginAsync();
 
+        /// <summary>
+        /// Silent restore from local storage (NO UI).
+        /// Call once on app startup.
+        /// </summary>
+        /// <returns></returns>
+        Task RestoreSessionAsync();
+       
         Task LogoutAsync();
+
+        Task<string?> CreateWebViewSignInUrlAsync(string redirectPath);
     }
 }

@@ -5,6 +5,10 @@
     <FontFamily x:Key="BIMFont">
         pack://application:,,,/BIMformative.DynamoExtension;component/UI/Assets/Fonts/#Inter
     </FontFamily>
+
+    <FontFamily x:Key="SymbolThemeFontFamily">
+        pack://application:,,,/BIMformative.DynamoExtension;component/UI/Assets/Fonts/SegoeFluentIcons.ttf#Segoe Fluent Icons
+    </FontFamily>
    
     
 </ResourceDictionary>

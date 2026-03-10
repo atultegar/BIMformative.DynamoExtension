@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace BIMformative.DynamoExtension.UI.Views
+namespace BIMformative.DynamoExtension.UI.Views.Controls
 {
     /// <summary>
     /// Interaction logic for SearchControl.xaml
@@ -24,6 +24,16 @@ namespace BIMformative.DynamoExtension.UI.Views
             {
                 vm.Initialize();
             }
+        }
+
+        private void OnSortButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnFilterButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

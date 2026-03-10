@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BIMformative.DynamoExtension.UI.Views
+namespace BIMformative.DynamoExtension.UI.Views.Controls
 {
     /// <summary>
     /// Interaction logic for InstalledScriptsControl.xaml
@@ -23,6 +23,15 @@ namespace BIMformative.DynamoExtension.UI.Views
         public InstalledScriptsControl()
         {
             InitializeComponent();
+        }
+
+        private void MoreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.ContextMenu != null)
+            {
+                button.ContextMenu.DataContext = button.DataContext;
+                button.ContextMenu.IsOpen = true;
+            }
         }
     }
 }

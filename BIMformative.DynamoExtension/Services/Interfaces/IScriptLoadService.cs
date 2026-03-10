@@ -1,4 +1,4 @@
-﻿using BIMformative.DynamoExtension.Models;
+﻿using BIMformative.DynamoExtension.Models.Scripts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +13,9 @@ namespace BIMformative.DynamoExtension.Services.Interfaces
         Task<bool> LoadScriptAsync(
             ScriptDto script,
             CancellationToken ct = default);
+
+        Task<bool> LoadScriptFileAsync(DownloadedScript model);
+
+        Task<bool> DownloadLatestFileAsync(DownloadedScript model, CancellationToken ct = default);
     }
 }
