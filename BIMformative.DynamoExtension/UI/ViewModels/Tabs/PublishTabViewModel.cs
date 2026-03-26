@@ -271,6 +271,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
 
                 ParsedJson = JsonSerializer.Serialize(result.ScriptData);
 
+                _uploadId = result.UploadId;
+                _storagePath = result.StoragePath;
+
                 // PREFILL - NOT LOCK
                 if (string.IsNullOrWhiteSpace(Title))
                     Title = result.ScriptData?.Name ?? string.Empty;

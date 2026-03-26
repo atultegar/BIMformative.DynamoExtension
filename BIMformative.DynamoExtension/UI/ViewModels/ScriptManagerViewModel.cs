@@ -28,6 +28,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
         private readonly IScriptService _scriptService;
         private readonly IDownloadedScriptsService _downloadedScriptsService;
         private readonly IScriptCompareService _scriptCompareService;
+        private readonly IDialogService _dialogService;
 
         // ----------------------------------------------------------------
         // Commands
@@ -98,7 +99,8 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
             IScriptAnalyzeService scriptAnalyzeService,
             IScriptService scriptService,
             IDownloadedScriptsService downloadedScriptService,
-            IScriptCompareService scriptCompareService)
+            IScriptCompareService scriptCompareService,
+            IDialogService dialogService)
         {
             _auth = auth ?? throw new ArgumentNullException(nameof(auth));
             _api = api ?? throw new ArgumentNullException(nameof(api));
@@ -108,6 +110,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
             _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _downloadedScriptsService = downloadedScriptService ?? throw new ArgumentNullException(nameof(downloadedScriptService));
             _scriptCompareService = scriptCompareService ?? throw new ArgumentNullException(nameof(scriptCompareService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
 
             // Commands
             SignInCommand = new AsyncRelayCommand(SignInAsync);
@@ -117,10 +120,10 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
             _auth.AuthStateChanged += OnAuthStateChanged;
             
             // Tabs
-            var searchTab = new SearchTabViewModel(_scriptService, _loader, _scriptCompareService);
+            var searchTab = new SearchTabViewModel(_scriptService, _loader, _scriptCompareService, _dialogService);
             searchTab.RequestClose += OnScriptLoaded;
 
-            var installedTab = new InstalledTabViewModel(_downloadedScriptsService, _loader, _scriptCompareService);
+            var installedTab = new InstalledTabViewModel(_downloadedScriptsService, _loader, _scriptCompareService, _dialogService);
             installedTab.RequestClose += OnScriptLoaded;
 
 
@@ -129,7 +132,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
                 searchTab,
                 new PublishTabViewModel(_auth, _scriptService),
                 installedTab,
-                new MyScriptsTabViewModel(_scriptService, _auth, _loader, _scriptCompareService),
+                new MyScriptsTabViewModel(_scriptService, _auth, _loader, _scriptCompareService, _dialogService),
                 new SettingsTabViewModel(_settings)
             };
 

@@ -38,6 +38,7 @@ namespace BIMformative.DynamoExtension
         private BimformativeDbContext? _dbContext;
         private IDownloadedScriptsService? _downloadedScriptsService;
         private IScriptCompareService? _scriptCompareService;
+        private IDialogService? _dialogService;
 
 
         public void Loaded(ViewLoadedParams vlp)
@@ -77,6 +78,9 @@ namespace BIMformative.DynamoExtension
 
             var baseUrl = env.BaseApiUrl;
 
+            // Dialog service
+            _dialogService = new DialogService(_dynamoWindow);
+
             // Auth service
             var authStore = new FileLocalAuthStore();
             var userApi = new UserApiClient(_authHttp);
@@ -107,7 +111,7 @@ namespace BIMformative.DynamoExtension
 
             var desktopTicketService = new DesktopTicketService(_publicHttp, _auth);
 
-            _scriptCompareService = new ScriptCompareService(_auth, _scriptLoader, baseUrl);
+            _scriptCompareService = new ScriptCompareService(_auth, _scriptLoader, baseUrl, _dialogService);
         }
 
         private void CreateMenu(ViewLoadedParams vlp)
@@ -139,7 +143,8 @@ namespace BIMformative.DynamoExtension
                         _scriptAnalyzeService,
                         _scriptService,
                         _downloadedScriptsService,
-                        _scriptCompareService)
+                        _scriptCompareService,
+                        _dialogService)
                 };                
 
                 _managerWindow.Closed += (_, _) => _managerWindow = null;

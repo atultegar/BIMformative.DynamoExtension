@@ -12,6 +12,7 @@
     <ItemGroup>
       <None Remove="UI\Assets\arrow-up-down-white.png" />
       <None Remove="UI\Assets\avatar-placeholder.png" />
+      <None Remove="UI\Assets\bimformative-icon.ico" />
       <None Remove="UI\Assets\caret_drop_down.png" />
       <None Remove="UI\Assets\circle-user-round.png" />
       <None Remove="UI\Assets\civil3d.png" />
@@ -39,6 +40,7 @@
       <None Remove="UI\Assets\Fonts\Inter-SemiBold.ttf" />
       <None Remove="UI\Assets\funnel-icon-white.png" />
       <None Remove="UI\Assets\git-compare-white.png" />
+      <None Remove="UI\Assets\lock-icon-white.png" />
       <None Remove="UI\Assets\logo-dark-2.png" />
       <None Remove="UI\Assets\more-details-white.png" />
       <None Remove="UI\Assets\more-details.png" />
@@ -48,9 +50,11 @@
       <None Remove="UI\Assets\search_icon_20px.png" />
       <None Remove="UI\Assets\Sort.png" />
       <None Remove="UI\Assets\square-chevron-down-primary.png" />
+      <None Remove="UI\Assets\square-pen-white.png" />
       <None Remove="UI\Assets\thumbs-up-white.png" />
       <None Remove="UI\Assets\thumbs-up.png" />
       <None Remove="UI\Assets\triangle-alert-red.png" />
+      <None Remove="UI\Assets\upload-icon-white.png" />
       <None Remove="UI\Assets\user-icon-white.png" />
       <None Remove="UI\Assets\user-round-white.png" />
       <None Remove="UI\Assets\workflow-white.png" />
@@ -77,6 +81,7 @@
 	<ItemGroup>
 	  <Resource Include="UI\Assets\arrow-up-down-white.png" />
 	  <Resource Include="UI\Assets\avatar-placeholder.png" />
+	  <Resource Include="UI\Assets\bimformative-icon.ico" />
 	  <Resource Include="UI\Assets\caret_drop_down.png" />
 	  <Resource Include="UI\Assets\circle-user-round.png" />
 	  <Resource Include="UI\Assets\civil3d.png" />
@@ -107,6 +112,7 @@
 	  </Resource>
 	  <Resource Include="UI\Assets\funnel-icon-white.png" />
 	  <Resource Include="UI\Assets\git-compare-white.png" />
+	  <Resource Include="UI\Assets\lock-icon-white.png" />
 	  <Resource Include="UI\Assets\logo-dark-2.png" />
 	  <Resource Include="UI\Assets\more-details-white.png" />
 	  <Resource Include="UI\Assets\more-details.png" />
@@ -117,9 +123,11 @@
 	  <Resource Include="UI\Assets\search_icon_20px.png" />
 	  <Resource Include="UI\Assets\Sort.png" />
 	  <Resource Include="UI\Assets\square-chevron-down-primary.png" />
+	  <Resource Include="UI\Assets\square-pen-white.png" />
 	  <Resource Include="UI\Assets\thumbs-up-white.png" />
 	  <Resource Include="UI\Assets\thumbs-up.png" />
 	  <Resource Include="UI\Assets\triangle-alert-red.png" />
+	  <Resource Include="UI\Assets\upload-icon-white.png" />
 	  <Resource Include="UI\Assets\user-icon-white.png" />
 	  <Resource Include="UI\Assets\user-round-white.png" />
 	  <Resource Include="UI\Assets\workflow-white.png" />
@@ -141,10 +149,6 @@
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
 	  <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3800.47" />	  
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\BIMformative.Dynamo.Core\BIMformative.Core.csproj" />
 	</ItemGroup>
 	
 

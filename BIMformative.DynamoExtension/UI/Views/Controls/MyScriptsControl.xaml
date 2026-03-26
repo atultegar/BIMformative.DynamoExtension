@@ -12,6 +12,7 @@
         <ResourceDictionary>            
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Brushes.xaml"/>
+                <ResourceDictionary Source="/BIMformative.DynamoExtension;component/UI/Styles/Fonts.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -81,7 +82,7 @@
                     <TextBlock Text="No scripts yet"
                                FontSize="14"
                                Foreground="#C7C7C7"/>
-                </StackPanel>
+                </StackPanel>                
 
                 <!--Error State-->
                 <StackPanel Grid.Column="0"
@@ -110,6 +111,26 @@
                                Foreground="#E7000B"/>
                 </StackPanel>
 
+                <!--API Error State-->
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding Scripts.MyCurrentState,
+                    Converter={StaticResource ViewStateVisibility},
+                    ConverterParameter=NotAuthenticated}">
+
+                    <TextBlock Text="&#xE72E;"
+                               FontFamily="{StaticResource SymbolThemeFontFamily}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#E7000B"/>
+                    <TextBlock Text="Please login to view your scripts"
+                               Margin="5,0,0,0"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#E7000B"/>
+                </StackPanel>
                 <!--SCRIPT LIST-->
                 <controls:MyScriptsListControl x:Name="scriptManagerSearchScripts"
                                                DataContext="{Binding Scripts}"

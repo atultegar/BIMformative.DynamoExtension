@@ -1,4 +1,5 @@
 ﻿using BIMformative.DynamoExtension.Models;
+using BIMformative.DynamoExtension.Models.Api;
 using BIMformative.DynamoExtension.Models.Scripts;
 using BIMformative.DynamoExtension.Services.Auth;
 using BIMformative.DynamoExtension.Services.Exceptions;
@@ -11,6 +12,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -139,9 +141,19 @@ namespace BIMformative.DynamoExtension.Services.Script
             return await AnalyzeAsync(workspace.FileName, ct);
         }
 
-        public Task<string> DeleteAsync(string slug, CancellationToken ct = default)
+        public async Task<string> DeleteAsync(string slug, CancellationToken ct = default)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug cannot be empty.", nameof(slug));
+
+            var url = $"scripts/{slug}";
+
+            var response = await DeleteAsync<ApiMessageResponse>(_authHttp, url, ct);
+
+            if (response == null || string.IsNullOrWhiteSpace(response.Message))
+                throw new InvalidOperationException("Error deleting script");
+
+            return response.Message;
         }
 
         public async Task<string> DownloadAsync(
@@ -515,13 +527,30 @@ namespace BIMformative.DynamoExtension.Services.Script
             {
                 using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
 
-                if (!response.IsSuccessStatusCode)
+                var content = await response.Content.ReadAsStringAsync(ct);
+
+                // ----- AUTH ERRORS ----- //
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    var content = await response.Content.ReadAsStringAsync(ct);
-                    throw new HttpRequestException(
-                        $"API returned {(int)response.StatusCode} - {response.ReasonPhrase}. Content: {content}");
+                    throw new UnauthorizedAccessException(
+                        $"Unauthorized (401). Content: {content}");
                 }
 
+                if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    throw new UnauthorizedAccessException(
+                        $"Forbidden (403). Content {content}");
+                }
+
+                // ----- OTHER API ERRORS ----- //
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exceptions.ApiException(
+                        $"API returned {(int)response.StatusCode} - {response.ReasonPhrase}. Content: {content}",
+                        (int)response.StatusCode);
+                }
+
+                // ----- SUCCESS ----- //
                 var options = new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
@@ -533,6 +562,10 @@ namespace BIMformative.DynamoExtension.Services.Script
                     throw new InvalidOperationException("Empty response form API");
 
                 return result;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
             }
             catch (OperationCanceledException)
             {
@@ -564,32 +597,44 @@ namespace BIMformative.DynamoExtension.Services.Script
 
             try
             {
-                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync(ct);
-
-                    throw new HttpRequestException(
-                        $"API returned {(int)response.StatusCode} - {response.ReasonPhrase}. Content: {errorBody}");
-                }
-
+                using var response = await client.SendAsync(
+                    request, 
+                    HttpCompletionOption.ResponseHeadersRead, 
+                    ct);
+                                
                 await using var stream = await response.Content.ReadAsStreamAsync(ct);
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
 
-                var result = await JsonSerializer.DeserializeAsync<T>(stream, options, ct);
+                var apiResponse = await JsonSerializer.DeserializeAsync<ApiResponse<T>>(stream, options, ct);
 
-                if (result is null)
-                    throw new InvalidOperationException("Empty response form API");
+                if (apiResponse == null)
+                    throw new InvalidOperationException("Invalid API response");
 
-                return result;
+                // HANDLE API ERROR (structured)
+                if (!apiResponse.Success)
+                {
+                    var code = apiResponse.Error?.Code ?? "UNKNOWN_ERROR";
+                    var message = apiResponse.Error?.Message ?? "Unknown error";
+
+                    throw new Models.Api.ApiException(code, message);
+                }
+
+                if (apiResponse.Data == null)
+                    throw new InvalidOperationException("API returned empty data");
+
+                return apiResponse.Data;
             }
             catch (OperationCanceledException)
             {
                 throw;
+            }
+            catch (Models.Api.ApiException)
+            {
+                throw; // preserve API errors
             }
             catch (HttpRequestException ex)
             {
@@ -702,7 +747,68 @@ namespace BIMformative.DynamoExtension.Services.Script
             return fallback;
         }
 
-        
+        private async Task<T> PatchAsync<T>(
+            HttpClient client,
+            string relativeUrl,
+            CancellationToken ct,
+            HttpContent? content = null)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Patch, relativeUrl)
+            {
+                Content = content
+            };
+
+            // Add authorization header if available
+            if (_auth.IsAuthenticated && !string.IsNullOrEmpty(_auth.AccessToken))
+            {
+                request.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _auth.AccessToken);
+            }
+
+            try
+            {
+                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+
+                await using var stream = await response.Content.ReadAsStreamAsync(ct);
+                                
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true                    
+                };
+
+                var apiResponse = await JsonSerializer.DeserializeAsync<ApiResponse<T>>(stream, options, ct);
+
+                // Handle API error
+                if (!apiResponse.Success)
+                {
+                    var code = apiResponse.Error?.Code ?? "UNKNOWN_ERROR";
+                    var message = apiResponse.Error?.Message ?? "Unknown error";
+
+                    throw new Models.Api.ApiException(code, message);
+                }
+
+                if (apiResponse.Data == null)
+                    throw new InvalidOperationException("Empty response from API");
+
+                return apiResponse.Data;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Models.Api.ApiException)
+            {
+                throw;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiUnavailableException("BIMformative server is unreachable.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ApiUnavailableException("Unexpected error while contacting BIMformative API.", ex);
+            }
+        }
 
         #endregion
 
@@ -713,6 +819,140 @@ namespace BIMformative.DynamoExtension.Services.Script
             var workspace = model.CurrentWorkspace != null;
 
             return workspace;           
+        }
+
+        public async Task<ScriptDetailsDto> UpdateScriptMetadataAsync(string slug, ScriptUpdateRequest scriptUpdateRequest, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug cannot be empty", nameof(slug));
+
+            if (scriptUpdateRequest == null)
+                throw new ArgumentNullException(nameof(scriptUpdateRequest));
+
+            var url = $"scripts/{slug}";
+
+            // Convert object to JSON content
+            var payload = JsonContent.Create(scriptUpdateRequest);
+
+            // Call the PatchAsync helper
+            var updatedScript = await PatchAsync<ScriptDetailsDto>(_authHttp, url, ct, payload);
+
+            return updatedScript;
+        }
+
+        public async Task<SetCurrentVersionResponse> SetCurrentVersionAsync(string slug, int versionNumber, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug cannot be empty", nameof(slug));
+
+            if (versionNumber < 1)
+                throw new ArgumentException("Version number must be greater than 0", nameof(versionNumber));
+
+            var url = $"scripts/{slug}/versions/{versionNumber}/set-current";
+
+            var result = await PostAsync<SetCurrentVersionResponse>(_authHttp, url, ct, content: null);
+
+            if (result == null)
+                throw new InvalidOperationException("SET_CURRENT_VERSION_FAILED");
+
+            return result;
+        }
+
+        public async Task<string> DeleteVersionAsync(string slug, int versionNumber, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug cannot be empty", nameof(slug));
+
+            if (versionNumber < 1)
+                throw new ArgumentException("Version number must be greater than 0", nameof(versionNumber));
+
+            var url = $"scripts/{slug}/versions/{versionNumber}";
+
+            var response = await DeleteAsync<ApiMessageResponse>(_authHttp, url, ct);
+
+            if (response == null || string.IsNullOrWhiteSpace(response.Message))
+                throw new InvalidOperationException("Error deleting script");
+
+            return response.Message;
+        }
+
+        private async Task<ScriptVersionDto> UploadVersionInternalAsync(
+            string slug,
+            ScriptAnalyzeResponseDto parsed,
+            string changeLog,
+            CancellationToken ct)
+        {
+            string url = $"scripts/{slug}/versions";
+            
+            var payload = new
+            {
+                storagePath = parsed.StoragePath,
+                parsedJson = parsed.ScriptData,
+                changeLog = changeLog
+            };
+
+            var json = JsonSerializer.Serialize(
+                payload,
+                new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var result = await PostAsync<ScriptVersionDto>(_authHttp, url, ct, httpContent);
+
+            if (result == null)
+                throw new InvalidOperationException("VERSION_UPLOAD_FAILED");
+
+            return result;
+        }
+
+        public async Task<ScriptVersionDto> UploadVersionAsync(string slug, string filePath, string changeLog = "", CancellationToken ct = default)
+        {
+            var parsed = await AnalyzeAsync(filePath, ct);
+
+            string url = $"scripts/{slug}/versions";
+
+            return await UploadVersionInternalAsync(slug, parsed, changeLog, ct);
+        }
+
+        public async Task<ScriptVersionDto> UploadVersionFromWorkspaceAsync(string slug, string changeLog = "", CancellationToken ct = default)
+        {
+            var parsed = await AnalyzeWorkspaceAsync(ct);
+
+            return await UploadVersionInternalAsync(slug, parsed, changeLog, ct);
+        }
+
+        public async Task<UpdateScriptVisibilityResponse> UpdateScriptVisibilityAsync(string slug, bool isPublic, CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentNullException("Slug cannot be empty", nameof(slug));
+
+            var url = $"scripts/{slug}/visibility";
+
+            var payload = new
+            {
+                isPublic
+            };
+
+            var json = JsonSerializer.Serialize(
+                payload,
+                new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await PatchAsync<UpdateScriptVisibilityResponse>(_authHttp, url, ct, httpContent);
+
+            if (response == null)
+                throw new InvalidOperationException("UPDATE_VISIBILITY_FAILED");
+
+            return response;
         }
     }
 }

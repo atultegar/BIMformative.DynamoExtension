@@ -1,7 +1,9 @@
 ﻿using BIMformative.DynamoExtension.Models;
+using BIMformative.DynamoExtension.Models.Api;
 using BIMformative.DynamoExtension.Models.Scripts;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -57,6 +59,13 @@ namespace BIMformative.DynamoExtension.Services.Script
             string metadata, 
             CancellationToken ct = default);
 
+        Task<ScriptDetailsDto> UpdateScriptMetadataAsync(
+            string slug,
+            ScriptUpdateRequest scriptUpdateRequest,
+            CancellationToken ct = default);
+
+        Task<UpdateScriptVisibilityResponse> UpdateScriptVisibilityAsync(string slug, bool isPublic, CancellationToken ct = default);
+
         Task<string> DeleteAsync(
             string slug, 
             CancellationToken ct = default);
@@ -88,5 +97,13 @@ namespace BIMformative.DynamoExtension.Services.Script
         Task<ScriptLikesDto> LikeAsync(string slug, CancellationToken ct = default);
 
         Task<ScriptLikesDto> UnlikeAsync(string slug, CancellationToken ct = default);
+
+        Task<SetCurrentVersionResponse> SetCurrentVersionAsync(string slug, int versionNumber, CancellationToken ct = default);
+
+        Task<string> DeleteVersionAsync(string slug, int versionNumber, CancellationToken ct = default);
+
+        Task<ScriptVersionDto> UploadVersionAsync(string slug, string filePath, string changeLog = "", CancellationToken ct = default);
+
+        Task<ScriptVersionDto> UploadVersionFromWorkspaceAsync(string slug, string changeLog = "", CancellationToken ct = default);
     }
 }

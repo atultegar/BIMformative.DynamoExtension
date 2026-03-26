@@ -5,6 +5,7 @@ using BIMformative.DynamoExtension.Services.Exceptions;
 using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
+using BIMformative.DynamoExtension.UI.Views;
 using BIMformative.DynamoExtension.UI.Views.Controls;
 using System;
 using System.Collections.ObjectModel;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -26,6 +28,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         private readonly Func<ScriptRowViewModel, Task> _loadScriptAsync;
         private readonly Action<ScriptRowViewModel> _viewDetailsAction;
         private readonly Action<ScriptDetailsViewModel> _closeDetailsAction;
+        private readonly IDialogService _dialogService;
 
         private readonly DispatcherTimer _timer;
 
@@ -87,13 +90,20 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
         private const int PageSize = 20;
 
-        public ScriptsListViewModel(IScriptService scriptService, Func<ScriptRowViewModel, Task> loadScripAsync, Action<ScriptRowViewModel> viewDetailsAction, IScriptLoadService loader, IScriptCompareService compareService)
+        public ScriptsListViewModel(
+            IScriptService scriptService, 
+            Func<ScriptRowViewModel, Task> loadScriptAsync, 
+            Action<ScriptRowViewModel> viewDetailsAction, 
+            IScriptLoadService loader, 
+            IScriptCompareService compareService,
+            IDialogService dialogService)
         {
             _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _scriptLoadService = loader ?? throw new ArgumentNullException(nameof(loader));
-            _loadScriptAsync = loadScripAsync ?? throw new ArgumentNullException(nameof(loadScripAsync));
+            _loadScriptAsync = loadScriptAsync ?? throw new ArgumentNullException(nameof(loadScriptAsync));
             _viewDetailsAction = viewDetailsAction ?? throw new ArgumentNullException(nameof(viewDetailsAction));
             _compareService = compareService ?? throw new ArgumentNullException(nameof(compareService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
             
 
             Scripts = new ObservableCollection<ScriptRowViewModel>();
@@ -309,7 +319,12 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 {
                     MyScripts.Add(new MyScriptRowViewModel(
                         dto,
-                        viewDetailsAction: OpenDetails));
+                        _scriptService,
+                        viewDetailsAction: OpenDetails,
+                        editAction: OnEditScript,
+                        loadAction: OnLoadScriptAsync,
+                        deletedCallback: OnScriptDeleted,
+                        uploadVersionAction: OnUploadVersion));
                 }
 
                 MyCurrentState = MyScripts.Any()
@@ -320,6 +335,10 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             {
                 MyCurrentState = ViewState.Error;
             }
+            catch (UnauthorizedAccessException)
+            {
+                MyCurrentState = ViewState.NotAuthenticated;
+            }
             catch (ApiUnavailableException)
             {
                 MyCurrentState = ViewState.ApiUnavailable;
@@ -328,6 +347,30 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             {
                 MyCurrentState = ViewState.Error;
             }            
+        }
+
+        private async Task OnEditScript(MyScriptRowViewModel row)
+        {
+            var slug = row.Slug;
+
+            var vm = new EditScriptViewModel(slug, _scriptService, _scriptLoadService, _compareService, _dialogService);
+
+            vm.EditTitle = row.Title;
+            vm.EditDescription = row.Description;
+
+            await vm.InitializeEditAsync();
+
+            var window = new EditScriptDialog
+            {
+                DataContext = vm
+            };
+
+            _dialogService.ShowDialog(window);
+        }
+
+        private void OnScriptDeleted(MyScriptRowViewModel row)
+        {
+            MyScripts.Remove(row);
         }
 
         private void CancelRequest()
@@ -444,6 +487,53 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             {
                 script.IsLoading = false;
             }
+        }
+
+        private async Task OnLoadScriptAsync(MyScriptRowViewModel script)
+        {
+            if (script == null || !script.CanLoad || script.IsLoading) return;
+
+            script.IsLoading = true;
+
+            try
+            {
+                await _scriptLoadService.LoadScriptAsync(script.GetScriptDto(), CancellationToken.None);
+                script.MarkAsLoaded();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Failed to load script: {ex.Message}");
+            }
+            finally
+            {
+                script.IsLoading = false;
+            }
+        }
+
+        private void OnUploadVersion(MyScriptRowViewModel row)
+        {
+            var vm = new UploadVersionViewModel(row.Slug, _scriptService);
+
+            var dialog = new UploadVersionDialog
+            {
+                DataContext = vm
+            };
+
+            vm.RequestClose += () => dialog.Close();
+
+            _dialogService.ShowDialog(dialog);
+        }
+
+        public void ClearScripts()
+        {
+            Scripts.Clear();
+            CurrentState = ViewState.Empty;
+        }
+
+        public void ClearMyScripts()
+        {
+            MyScripts.Clear();
+            MyCurrentState = ViewState.Empty;
         }
 
     }

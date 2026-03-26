@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BIMformative.DynamoExtension.Models
+namespace BIMformative.DynamoExtension.Models.Api
 {
     public class ApiListResponse<T>
     {

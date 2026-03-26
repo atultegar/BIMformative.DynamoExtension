@@ -1,5 +1,8 @@
 <Solution>
-  <Project Path="BIMformative.Dynamo.Core/BIMformative.Core.csproj" Id="f865fef3-9eb4-4669-b30a-5cde3d9eb349" />
+  <Project Path="BIMformative.Core/BIMformative.Core.csproj" Id="5bb0a38d-4cae-49d0-bb3f-0429c4b43313" />
+  <Project Path="BIMformative.DynamoContext/BIMformative.DynamoContext.csproj" Id="399173dd-e569-47bf-ad85-760d4700ab2f" />
+  <Project Path="BIMformative.DynamoExtension.Setup/BIMformative.DynamoExtension.Setup.vdproj" Type="Installer">
+    <Build />
+  </Project>
   <Project Path="BIMformative.DynamoExtension/BIMformative.DynamoExtension.csproj" />
-  <Project Path="BIMformative.Migrator/BIMformative.Migrator.csproj" Id="a378d492-9e21-4964-96c0-6ad8effa850f" />
 </Solution>

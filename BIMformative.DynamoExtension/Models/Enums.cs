@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,5 +63,14 @@ namespace BIMformative.DynamoExtension.Models
     {
         Ascending, 
         Descending 
+    }
+
+    public enum ScriptType
+    {
+        [Description("Revit")]
+        Revit,
+
+        [Description("Civil 3D")]
+        Civil3D
     }
 }

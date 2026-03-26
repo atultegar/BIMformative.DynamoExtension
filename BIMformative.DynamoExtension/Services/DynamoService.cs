@@ -12,8 +12,6 @@ namespace BIMformative.DynamoExtension.Services
 {
     public class DynamoService : IDynamoService
     {
-        
-
         public void CloseCurrentWorkspace()
         {
             throw new NotImplementedException();

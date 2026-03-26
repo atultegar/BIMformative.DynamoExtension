@@ -109,14 +109,29 @@
                                                 <MenuItem Header="View Details"
                                                           Tag="/BIMformative.DynamoExtension;component/UI/Assets/folder-open-white.png"
                                                           Command="{Binding ViewDetailsCommand}"/>
+                                                
                                                 <MenuItem Header="Load"
                                                           Tag="/BIMformative.DynamoExtension;component/UI/Assets/download-icon-white.png"
                                                           Command="{Binding LoadCommand}"/>
+                                                
+                                                <MenuItem Header="Edit Script"
+                                                          Tag="/BIMformative.DynamoExtension;component/UI/Assets/square-pen-white.png"
+                                                          Command="{Binding EditScriptCommand}"/>
+
+                                                <MenuItem Header="Upload Version"
+                                                          Tag="/BIMformative.DynamoExtension;component/UI/Assets/upload-icon-white.png"
+                                                          Command="{Binding UploadVersionCommand}"/>
+                                                
                                                 <Separator Width="Auto" Style="{StaticResource ContextMenuSeparatorStyle}"/>
+
+                                                <MenuItem Header="{Binding MakeButtonText, FallbackValue=MakePrivate}"
+                                                          Tag="/BIMformative.DynamoExtension;component/UI/Assets/lock-icon-white.png"
+                                                          Command="{Binding ChangeVisibilityCommand}"/>
+                                                
                                                 <MenuItem Header="Delete"
                                                           Tag="/BIMformative.DynamoExtension;component/UI/Assets/triangle-alert-red.png"
                                                           Foreground="#E7000B"
-                                                          Command=""/>
+                                                          Command="{Binding DeleteScriptCommand}"/>
                                             </ContextMenu>
                                         </Button.ContextMenu>
                                     </Button>

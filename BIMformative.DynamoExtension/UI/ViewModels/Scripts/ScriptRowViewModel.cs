@@ -2,6 +2,7 @@
 using BIMformative.DynamoExtension.Models.Scripts;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.Utils;
+using Dynamo.Wpf.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.MessageBox.Show($"Failed to load script: {ex.Message}");
+                    MessageBoxService.Show($"Failed to load script: {ex.Message}", "Load Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 }
                 finally
                 {

@@ -1,4 +1,5 @@
-﻿using BIMformative.DynamoExtension.Services.Interfaces;
+﻿using BIMformative.DynamoExtension.Services;
+using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Search;
 using BIMformative.DynamoExtension.UI.Views.Controls;
@@ -15,8 +16,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         public SearchTabViewModel(
             IScriptService scriptService, 
             IScriptLoadService loader,
-            IScriptCompareService scriptCompareService)
-            : this(new SearchViewModel(scriptService, loader, scriptCompareService))
+            IScriptCompareService scriptCompareService,
+            IDialogService dialogService)
+            : this(new SearchViewModel(scriptService, loader, scriptCompareService, dialogService))
         {            
         }
 

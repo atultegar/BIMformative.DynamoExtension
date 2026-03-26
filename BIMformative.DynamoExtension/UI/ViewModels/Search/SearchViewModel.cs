@@ -1,9 +1,11 @@
 ﻿using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Models;
+using BIMformative.DynamoExtension.Services;
 using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
+using Dynamo.Wpf.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,6 +25,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
         private readonly IScriptService _scriptService;
         private readonly IScriptLoadService _loader;
         private readonly IScriptCompareService _compareService;
+        private readonly IDialogService _dialogService;
 
         public ScriptsListViewModel Scripts { get; }
 
@@ -37,16 +40,17 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
             Filters.Where(x => x.IsSelected)
             .Select(x => x.Name);
 
-        public SearchViewModel(IScriptService scriptService, IScriptLoadService loader, IScriptCompareService compareService)
+        public SearchViewModel(IScriptService scriptService, IScriptLoadService loader, IScriptCompareService compareService, IDialogService dialogService)
         {
             _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
             _compareService = compareService ?? throw new ArgumentNullException(nameof(compareService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
             
             Filters.Add(new FilterItemViewModel("revit", "Revit"));
             Filters.Add(new FilterItemViewModel("civil3d", "Civil 3D"));
 
-            Scripts = new ScriptsListViewModel(_scriptService, OnLoadScriptAsync, OnViewDetails, loader, _compareService);
+            Scripts = new ScriptsListViewModel(_scriptService, OnLoadScriptAsync, OnViewDetails, loader, _compareService, _dialogService);
 
             Scripts.LoadFirstPageCommand.Execute(null);
             SortByCommand = new RelayCommand<string>(SetSortBy);
@@ -191,9 +195,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
+                MessageBoxService.Show(
                     $"Failed to load script:\n{ex.Message}",
-                    "BIMformative",
+                    "Load Error",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Error);
             }

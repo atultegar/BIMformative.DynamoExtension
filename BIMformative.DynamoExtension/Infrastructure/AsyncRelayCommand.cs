@@ -32,7 +32,12 @@ namespace BIMformative.DynamoExtension.Infrastructure
 
         public async void Execute(object? parameter)
         {
-            if (!CanExecute(parameter))
+            await ExecuteAsync();
+        }
+
+        public async Task ExecuteAsync()
+        {
+            if (!CanExecute(null))
                 return;
 
             try
@@ -100,6 +105,24 @@ namespace BIMformative.DynamoExtension.Infrastructure
                 _isExecuting = false;
                 RaiseCanExecuteChanged();
             }            
+        }
+
+        public async Task ExecuteAsync(T? parameter)
+        {
+            if (!CanExecute(parameter))
+                return;
+
+            try
+            {
+                _isExecuting = true;
+                RaiseCanExecuteChanged();
+                await _execute((T?)parameter);
+            }
+            finally 
+            { 
+                _isExecuting = false;
+                RaiseCanExecuteChanged();
+            } 
         }
 
         public void RaiseCanExecuteChanged()

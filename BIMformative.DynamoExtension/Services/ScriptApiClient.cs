@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using BIMformative.DynamoExtension.Models.Scripts;
+using BIMformative.DynamoExtension.Models.Api;
 
 namespace BIMformative.DynamoExtension.Services
 {

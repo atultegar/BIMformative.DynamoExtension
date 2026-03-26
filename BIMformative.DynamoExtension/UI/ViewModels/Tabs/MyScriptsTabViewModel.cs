@@ -1,4 +1,5 @@
-﻿using BIMformative.DynamoExtension.Services.Auth;
+﻿using BIMformative.DynamoExtension.Services;
+using BIMformative.DynamoExtension.Services.Auth;
 using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
@@ -18,6 +19,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         private readonly IScriptService _scriptService;
         private readonly IScriptLoadService _loader;
         private readonly IScriptCompareService _compareService;
+        private readonly IDialogService _dialogService;
 
         private bool _initialized;
         private CancellationTokenSource? _searchCts;
@@ -28,7 +30,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
 
         public ICommand CloseDetailsCommand => Scripts.CloseDetailsCommand;
 
-        public MyScriptsTabViewModel(IScriptService scriptService, IAuthService auth, IScriptLoadService loader, IScriptCompareService compareService)
+        public MyScriptsTabViewModel(IScriptService scriptService, IAuthService auth, IScriptLoadService loader, IScriptCompareService compareService, IDialogService dialogService)
             : base (
                   header: "My Scripts",
                   contentFactory: () => new MyScriptsControl())                  
@@ -40,33 +42,53 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
             _compareService = compareService ?? throw new ArgumentNullException(nameof(compareService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
 
-            Scripts = new ScriptsListViewModel(scriptService, OnLoadScriptAsync, OnViewDetails, loader, _compareService);
+            Scripts = new ScriptsListViewModel(scriptService, OnLoadScriptAsync, OnViewDetails, loader, _compareService, _dialogService);
 
             _auth.AuthStateChanged += OnAuthStateChanged;
         }
 
         public async Task InitializeAsync()
         {
-            if (_initialized) 
-                return;
-
             if (!_auth.IsAuthenticated)
+            {
+                Scripts.ClearMyScripts();
+                Scripts.MyCurrentState = Models.ViewState.NotAuthenticated;
+                _initialized = false;
                 return;
-
-            _initialized = true;
+            }
 
             await Scripts.LoadMyScriptsAsync(CancellationToken.None);
+
+            _initialized = true;
         }
 
         private async void OnAuthStateChanged(object? sender, EventArgs e)
         {
-            if (!_auth.IsAuthenticated)
+            try
             {
+                if (!_auth.IsAuthenticated)
+                {
+                    Scripts.ClearMyScripts();
+                    Scripts.MyCurrentState = Models.ViewState.NotAuthenticated;
+                    _initialized = false;
+                    return;
+                }
+
+                // Force reload even if already initialized
                 _initialized = false;
-                return;
+
+                await InitializeAsync();
             }
-            await InitializeAsync();
+            catch (Exception ex)
+            {
+                MessageBoxService.Show(
+                    $"Auth refresh failed:\n{ex.Message}",
+                    "Error",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
         }
 
         private string? _searchText;
@@ -125,7 +147,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             {
                 MessageBoxService.Show(
                     $"Failed to load script:\n{ex.Message}",
-                    "BIMformative",
+                    "Load Error",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Error);
             }

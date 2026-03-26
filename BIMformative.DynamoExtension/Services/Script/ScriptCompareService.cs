@@ -22,13 +22,15 @@ namespace BIMformative.DynamoExtension.Services.Script
     {
         private readonly IAuthService _authService;
         private readonly IScriptLoadService _loader;
-        private readonly Uri _baseAddress; 
+        private readonly Uri _baseAddress;
+        private readonly IDialogService _dialogService;
 
-        public ScriptCompareService(IAuthService authService, IScriptLoadService loader, Uri baseAddress)
+        public ScriptCompareService(IAuthService authService, IScriptLoadService loader, Uri baseAddress, IDialogService dialogService)
         {
             _authService = authService;
             _loader = loader;
             _baseAddress = baseAddress;
+            _dialogService = dialogService;
         }
 
         public async Task OpenCompareAsync(DownloadedScriptItemViewModel item, Func<Task> refreshParentList)
@@ -60,11 +62,9 @@ namespace BIMformative.DynamoExtension.Services.Script
                 refreshParentList,
                 closeAction: () => window.Close()
             );
-
-            window.Owner = Application.Current.MainWindow;
             window.DataContext = vm;
 
-            window.Show();
+            _dialogService.ShowDialog(window);
         }
 
         public async Task OpenVersionCompareAsync(string slug, int leftVersion, int rightVersion)
@@ -91,11 +91,9 @@ namespace BIMformative.DynamoExtension.Services.Script
                 };
 
                 var window = new CompareWindow(url.AbsoluteUri, payload);
-
-                window.Owner = Application.Current.MainWindow;
                 window.UpdateButton.Visibility = Visibility.Collapsed;
 
-                window.Show();
+                _dialogService.ShowDialog(window);
             }
             catch (Exception ex)
             {

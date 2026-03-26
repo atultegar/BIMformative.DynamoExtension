@@ -9,12 +9,17 @@
         <Setter Property="FontStyle" Value="Normal" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Padding" Value="5,10" />
-        <Setter Property="BorderBrush" Value="#292524"/>
+        <Setter Property="BorderBrush" Value="#444"/>
         <Style.Resources>
             <Style TargetType="{x:Type Border}">
                 <Setter Property="CornerRadius" Value="4"/>
             </Style>
         </Style.Resources>
+    </Style>
+
+    <Style x:Key="TextBoxStyleLight" TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}">
+        <Setter Property="Background" Value="#EEEEEE"/>
+        <Setter Property="Foreground" Value="#0C0A09"/>
     </Style>
 
 </ResourceDictionary>

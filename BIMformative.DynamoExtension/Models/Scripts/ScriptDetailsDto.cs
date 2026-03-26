@@ -38,6 +38,6 @@ namespace BIMformative.DynamoExtension.Models.Scripts
         public IReadOnlyList<string> Tags { get; set; } = [];
         public IReadOnlyList<string> External_Packages { get; set; } = [];
 
-        public bool IsPublic { get; set; } = false;
+        public bool Is_Public { get; set; } = false;
     }
 }

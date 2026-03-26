@@ -5,6 +5,7 @@ using BIMformative.DynamoExtension.Services.Exceptions;
 using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
+using Dynamo.Wpf.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,7 +19,7 @@ using System.Windows.Markup;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 {
-    public sealed class ScriptDetailsViewModel : ViewModelBase
+    public class ScriptDetailsViewModel : ViewModelBase
     {
         private readonly IScriptLoadService _loader;
         private readonly IScriptService _scriptService;
@@ -70,7 +71,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         //COMMANDS
         public ICommand LoadCommand { get; }
         public ICommand LoadDetailsCommand { get; }
-        public ICommand LoadVersionCommand { get; }
+        public AsyncRelayCommand LoadVersionCommand { get; }
 
         public ICommand VersionHistoryCommand { get; }
         public ICommand LikeCommand { get; }
@@ -178,6 +179,10 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 Details = results;
                 CurrentState = ViewState.Loaded;
             }
+            catch (UnauthorizedAccessException)
+            {
+                CurrentState = ViewState.NotAuthenticated;
+            }
             catch (OperationCanceledException)
             {
                 CurrentState = ViewState.Error;
@@ -201,7 +206,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 Versions.Clear();
 
                 foreach (var v in versions)
-                    Versions.Add(new ScriptVersionRowViewModel(v));
+                    Versions.Add(new ScriptVersionRowViewModel(v, this));
             }
             catch
             {
@@ -215,6 +220,38 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 return;
 
             await _loader.LoadScriptAsync(ToScriptDto(Details), CancellationToken.None);
+        }
+
+        public async Task SetCurrentVersionAsync(int versionNumber)
+        {
+            try
+            {
+                var res = await _scriptService.SetCurrentVersionAsync(Details.Slug, versionNumber, CancellationToken.None);
+
+                MessageBoxService.Show(res.Message, "Success", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+            catch (ApiException ex)
+            {
+                MessageBoxService.Show(ex.Message, "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }            
+
+            await LoadVersionsAsync();
+        }
+
+        public async Task DeleteVersionAsync(int versionNumber)
+        {
+            if (MessageBoxService.Show(
+                "Delete this version?",
+                "Confirm Delete",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning) != System.Windows.MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            await _scriptService.DeleteVersionAsync(Details.Slug, versionNumber);
+
+            await LoadVersionsAsync();
         }
 
         private static ScriptDto ToScriptDto(ScriptDetailsDto d)
@@ -238,7 +275,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             };
         }
 
-        private void OnDetailsChanged()
+        protected virtual void OnDetailsChanged()
         {
             OnPropertyChanged(nameof(Title));
             OnPropertyChanged(nameof(Description));

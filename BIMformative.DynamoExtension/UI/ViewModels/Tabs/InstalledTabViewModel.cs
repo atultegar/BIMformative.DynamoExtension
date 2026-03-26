@@ -26,6 +26,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         private readonly IScriptCompareService _scriptCompareService;
         private bool _isBusy;
         public event Action? RequestClose;
+        private readonly IDialogService _dialogService;
 
         private CancellationTokenSource? _searchCts;
 
@@ -79,7 +80,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         public ICommand CheckForUpdatesCommand { get; }
         public ICommand DeleteCommand { get; }
 
-        public InstalledTabViewModel(IDownloadedScriptsService service, IScriptLoadService loader, IScriptCompareService scriptCompareService)
+        public InstalledTabViewModel(IDownloadedScriptsService service, IScriptLoadService loader, IScriptCompareService scriptCompareService, IDialogService dialogService)
             : base (
                   header: "Downloaded Scripts",
                   contentFactory: () => new InstalledScriptsControl())
@@ -90,6 +91,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             _service = service;
             _loader = loader;
             _scriptCompareService = scriptCompareService;
+            _dialogService = dialogService;
 
             ScriptsView = CollectionViewSource.GetDefaultView(Scripts);
             ScriptsView.Filter = FilterScripts;
