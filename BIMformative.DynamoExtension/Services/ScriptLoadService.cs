@@ -1,19 +1,12 @@
-﻿using BIMformative.DynamoExtension.Db;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Models.Scripts;
-using BIMformative.DynamoExtension.Services.Auth;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
+using BIMformative.Core.Models.Scripts;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
-using Dynamo.Wpf.Interfaces;
+using Microsoft.Web.WebView2.Core;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Media3D;
 
 namespace BIMformative.DynamoExtension.Services
 {
@@ -140,7 +133,50 @@ namespace BIMformative.DynamoExtension.Services
             return canContinue;
         }
 
-        
+        public async Task<ScriptAnalyzeResponseDto> AnalyzeWorkspaceAsync(CancellationToken ct = default)
+        {
+            var model = _dynamo.Model;
+            var vm = _dynamo.ViewModel;
 
+            var workspace = model.CurrentWorkspace
+                ?? throw new InvalidOperationException("No active workspace");
+
+            ct.ThrowIfCancellationRequested();
+
+            // Handle unsaved changes on UI thread
+            if (workspace.HasUnsavedChanges)
+            {
+                bool canContinue = false;
+
+                await _dynamo.Window.Dispatcher.InvokeAsync(() =>
+                {
+                    canContinue = vm.AskUserToSaveWorkspaceOrCancel(model.CurrentWorkspace);
+                });
+
+                if (!canContinue)
+                    throw new OperationCanceledException("User cancelled save operation.");
+            }
+
+            // Ensure file is saved
+            if (string.IsNullOrWhiteSpace(workspace.FileName))
+                throw new InvalidOperationException("Workspace must ne saved before anlyzing.");
+
+            ct.ThrowIfCancellationRequested();
+
+            // Delegate to AnalyzeAsync
+            return await _scriptService.AnalyzeAsync(workspace.FileName, ct);
+        }
+
+        public async Task<ScriptVersionDto> UploadVersionFromWorkspaceAsync(string slug, string changeLog = "", CancellationToken ct = default)
+        {
+            var parsed = await AnalyzeWorkspaceAsync();
+
+            return await _scriptService.PublishVersionAsync(slug, parsed, changeLog, ct);
+        }
+
+        public bool HasOpenWorkspace()
+        {
+            return _dynamo.HasOpenWorkspace;
+        }
     }
 }

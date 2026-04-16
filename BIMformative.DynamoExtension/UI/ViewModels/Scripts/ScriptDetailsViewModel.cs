@@ -1,21 +1,17 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Models.Scripts;
-using BIMformative.DynamoExtension.Services.Exceptions;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
+using BIMformative.Core.Models.Api;
+using BIMformative.Core.Models.Scripts;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using Dynamo.Wpf.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Security.RightsManagement;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows.Markup;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 {

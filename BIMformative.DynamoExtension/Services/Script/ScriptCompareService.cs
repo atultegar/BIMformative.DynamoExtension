@@ -1,19 +1,14 @@
-﻿using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Services.Auth;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
 using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.UI.ViewModels;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
 using BIMformative.DynamoExtension.UI.Views;
 using Dynamo.Wpf.Utilities;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Navigation;
-using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 
 namespace BIMformative.DynamoExtension.Services.Script
@@ -107,7 +102,7 @@ namespace BIMformative.DynamoExtension.Services.Script
 
         private async Task<object> BuildComparePayload(DownloadedScriptItemViewModel item)
         {
-            var scriptJson = await File.ReadAllTextAsync(item.FilePath);
+            var scriptJson = File.ReadAllText(item.FilePath);
             switch (item.SyncStatus)
             {
                 case ScriptSyncStatus.ModifiedLocally:

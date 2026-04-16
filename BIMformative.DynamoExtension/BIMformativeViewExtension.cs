@@ -10,9 +10,12 @@ using BIMformative.DynamoExtension.Services.Auth;
 using BIMformative.DynamoExtension.Services.Interfaces;
 using BIMformative.DynamoExtension.Services.Settings;
 using BIMformative.DynamoExtension.Infrastructure.Environment;
-using System.Printing;
 using BIMformative.DynamoExtension.Services.Script;
-using BIMformative.DynamoExtension.Db;
+using BIMformative.Core.Interfaces;
+using BIMformative.Infrastructure;
+using BIMformative.Infrastructure.Repositories;
+using BIMformative.Core.Services;
+using BIMformative.Infrastructure.Api;
 
 namespace BIMformative.DynamoExtension
 {
@@ -26,20 +29,18 @@ namespace BIMformative.DynamoExtension
         private Window? _dynamoWindow;
         private DynamoContext? _dynamoContext;
 
-        // Shared services
-        private HttpClient? _authHttp;
-        private HttpClient? _publicHttp;
+        // Services
         private IAuthService? _auth;
-        private IScriptApiClient? _scriptApi;
+        private IScriptService? _scriptService;
         private IScriptLoadService? _scriptLoader;
         private ISettingsService? _settingsService;
-        private IScriptAnalyzeService? _scriptAnalyzeService;
-        private IScriptService? _scriptService;
-        private BimformativeDbContext? _dbContext;
         private IDownloadedScriptsService? _downloadedScriptsService;
         private IScriptCompareService? _scriptCompareService;
         private IDialogService? _dialogService;
 
+        // Infra
+        private HttpClient? _authHttp;
+        private HttpClient? _publicHttp;
 
         public void Loaded(ViewLoadedParams vlp)
         {            
@@ -47,11 +48,10 @@ namespace BIMformative.DynamoExtension
                 ?? throw new InvalidOperationException("Dynamo window is null.");
 
             var dynamoViewModel = _dynamoWindow.DataContext as DynamoViewModel 
-                ?? throw new InvalidOperationException("Dynamo DataContext is not a DynamoViewModel");
+                ?? throw new InvalidOperationException("Invalid Dynamo DataContext");
 
             _dynamoContext = new DynamoContext(dynamoViewModel, _dynamoWindow);
-
-            // Create shared services
+                        
             InitializeServices();
             
             CreateMenu(vlp);
@@ -59,59 +59,74 @@ namespace BIMformative.DynamoExtension
 
         private void InitializeServices()
         {
-            // HTTP Client
-#if DEBUG
+            if (_dynamoContext == null)
+                throw new InvalidOperationException("DynamoContext not initialized");
+            
+            // Environment
+#if DEBUG_REVIT2025
             var env = Environments.Local;
 #else
             var env = Environments.Production;
 #endif
+            // Http Clients
+            _authHttp = new HttpClient { BaseAddress = env.ApiBaseAddress };
+            _publicHttp = new HttpClient { BaseAddress = env.ApiPublicBaseAddress };
 
-            _authHttp = new HttpClient
-            {
-                BaseAddress = env.ApiBaseAddress
-            };
+            // Database
+            SQLitePCL.Batteries_V2.Init();
+            var dbContext = DatabaseBootstrapper.Initialize();
+            var downloadedRepo = new DownloadedScriptRepository(dbContext);
 
-            _publicHttp = new HttpClient
-            {
-                BaseAddress = env.ApiPublicBaseAddress
-            };
+            
+            
 
-            var baseUrl = env.BaseApiUrl;
+            // Local Services
+            var authStore = new LocalAuthStore();
 
-            // Dialog service
-            _dialogService = new DialogService(_dynamoWindow);
-
-            // Auth service
-            var authStore = new FileLocalAuthStore();
-            var userApi = new UserApiClient(_authHttp);
-            _auth = new AuthService(_authHttp, userApi, authStore);
-
-            // Settings service
             _settingsService = new FileSettingsService();
             _settingsService.Load();
 
-            // Script API & Loader
-            _scriptApi = new ScriptApiClient(_authHttp, _publicHttp, _auth);
+            _dialogService = new DialogService(_dynamoWindow);
 
             var overwritePrompt = new FileOverwritePrompt();
-            var downloadService = new ScriptDownloadService(_authHttp, _settingsService, overwritePrompt);
 
-            if (_dynamoContext == null)
-                throw new InvalidOperationException("DynamoContext is null during service initialization");            
+            // User API
+            var userApiClient = new UserApiClient(_authHttp);
 
-            _scriptAnalyzeService = new ScriptAnalyzeService(_authHttp, _auth);
+            // Auth Service
+            _auth = new AuthService(_authHttp, userApiClient, authStore);
 
-            _scriptService = new ScriptService(_dynamoContext, _authHttp, _publicHttp, _auth, _settingsService, overwritePrompt);
-            _dbContext = DatabaseBootstrapper.Initialize();
+            // Infrastructure - API Clients
+            var authApiClient = new AuthApiClient(_authHttp, _auth);
+            var publicApiClient = new PublicApiClient(_publicHttp);
+            var scriptApiClient = new ScriptApiClient(authApiClient, publicApiClient);
 
-            var downloadedRepo = new DownloadedScriptRepository(_dbContext);
+            // Core Services
+            _scriptService = new ScriptService(
+                scriptApiClient, 
+                _settingsService, 
+                overwritePrompt
+            );
 
-            _downloadedScriptsService = new DownloadedScriptsService(_dbContext, _scriptService);
-            _scriptLoader = new ScriptLoadService(_dynamoContext, _scriptService, _downloadedScriptsService);
+            _downloadedScriptsService = new DownloadedScriptsService(
+                downloadedRepo,
+                _scriptService
+            );
 
-            var desktopTicketService = new DesktopTicketService(_publicHttp, _auth);
+            _scriptLoader = new ScriptLoadService(
+                _dynamoContext, 
+                _scriptService, 
+                _downloadedScriptsService
+            );
 
-            _scriptCompareService = new ScriptCompareService(_auth, _scriptLoader, baseUrl, _dialogService);
+            var baseUrl = env.BaseApiUrl;
+
+            _scriptCompareService = new ScriptCompareService(
+                _auth, 
+                _scriptLoader, 
+                baseUrl, 
+                _dialogService
+            );
         }
 
         private void CreateMenu(ViewLoadedParams vlp)
@@ -129,18 +144,20 @@ namespace BIMformative.DynamoExtension
         {
             if (_managerWindow == null)
             {
-                if (_dynamoContext == null || _auth == null || _scriptApi == null || _scriptLoader == null || _settingsService == null)
+                if (_auth == null || _scriptService == null || _scriptLoader == null || _settingsService == null ||
+                    _downloadedScriptsService == null || _scriptCompareService == null || _dialogService == null)
+                {
                     throw new InvalidOperationException("Services are not initialized");
+                }
+                    
 
                 _managerWindow = new ScriptManagerWindow
                 {
                     Owner = _dynamoWindow,
                     DataContext = new UI.ViewModels.ScriptManagerViewModel(
                         _auth,
-                        _scriptApi,
                         _scriptLoader,
                         _settingsService,
-                        _scriptAnalyzeService,
                         _scriptService,
                         _downloadedScriptsService,
                         _scriptCompareService,

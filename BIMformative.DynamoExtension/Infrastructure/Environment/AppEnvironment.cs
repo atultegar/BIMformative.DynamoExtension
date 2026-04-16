@@ -4,8 +4,8 @@ namespace BIMformative.DynamoExtension.Infrastructure.Environment
 {
     public sealed class AppEnvironment
     {
-        public Uri BaseApiUrl { get; init; } = null;
-        public string ApiVersion { get; init; } = "v1";
+        public Uri BaseApiUrl { get; set; } = null;
+        public string ApiVersion { get; set; } = "v1";
 
         public Uri ApiBaseAddress => new Uri(BaseApiUrl, $"api/{ApiVersion}/");
 

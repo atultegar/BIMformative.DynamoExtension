@@ -1,21 +1,17 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Services;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
 using Dynamo.Wpf.Utilities;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Search
@@ -108,7 +104,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
             }
         }
 
-        private SortOrder _sortOrder = Models.SortOrder.desc;
+        private SortOrder _sortOrder = SortOrder.desc;
         public SortOrder SortOrder
         {
             get => _sortOrder;
@@ -146,12 +142,12 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Search
 
         private void SetSortBy(string sort)
         {
-            SortBy = Enum.Parse<ScriptSortField>(sort);
+            SortBy = (ScriptSortField)Enum.Parse(typeof(ScriptSortField), sort);
         }
 
         private void SetSortOrder(string order)
         {
-            SortOrder = Enum.Parse<SortOrder>(order);
+            SortOrder = (SortOrder)Enum.Parse(typeof(SortOrder), order);
         }
 
         public ICommand SortByLikesCommand =>

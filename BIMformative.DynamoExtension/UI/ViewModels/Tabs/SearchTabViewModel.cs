@@ -1,6 +1,5 @@
-﻿using BIMformative.DynamoExtension.Services;
+﻿using BIMformative.Core.Interfaces;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Search;
 using BIMformative.DynamoExtension.UI.Views.Controls;
 using System;

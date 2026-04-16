@@ -1,13 +1,9 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models.Api;
-using BIMformative.DynamoExtension.Services.Script;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models.Api;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
-using BIMformative.DynamoExtension.UI.Views.Controls;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -17,19 +13,22 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
     public class UploadVersionViewModel : ViewModelBase
     {
         private readonly IScriptService _scriptService;
+        private readonly IScriptLoadService _scriptLoadService;
 
         public string Slug { get; }
 
         public event Action? RequestClose;
 
-        public UploadVersionViewModel(string slug, IScriptService scriptService)
+        public UploadVersionViewModel(string slug, IScriptService scriptService, IScriptLoadService scriptLoadService)
         {
             Slug = slug ?? throw new ArgumentNullException(nameof(slug));
             _scriptService = scriptService;
+            _scriptLoadService = scriptLoadService;
 
             BrowseFileCommand = new RelayCommand(BrowseFile);
             UseWorkspaceCommand = new AsyncRelayCommand(UseCurrentWorkspaceAsync);
-            SubmitCommand = new AsyncRelayCommand(UploadAsync, () => CanUpload);            
+            SubmitCommand = new AsyncRelayCommand(UploadAsync, () => CanUpload);
+            _scriptLoadService = scriptLoadService;
         }
 
         #region Mode Selection
@@ -214,7 +213,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 StatusMessage = "Uploading...";
                 StatusColor = Brushes.Gray;
 
-                await _scriptService.UploadVersionAsync(Slug, FilePath, ChangeLog);
+                var parsed = await _scriptService.AnalyzeAsync(FilePath);
+
+                await _scriptService.PublishVersionAsync(Slug, parsed, ChangeLog);
 
                 StatusMessage = "✔ Version uploaded successfully";
                 StatusColor = Brushes.Green;
@@ -246,7 +247,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                 StatusMessage = "Exporting workspace...";
                 StatusColor = Brushes.Gray;
 
-                await _scriptService.UploadVersionFromWorkspaceAsync(Slug, ChangeLog);
+                await _scriptLoadService.UploadVersionFromWorkspaceAsync(Slug, ChangeLog);
 
                 StatusMessage = "✔ Version uploaded successfully";
                 StatusColor = Brushes.Green;

@@ -1,20 +1,15 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Services;
-using BIMformative.DynamoExtension.Services.Exceptions;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
+using BIMformative.Core.Models.Api;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.Views;
-using BIMformative.DynamoExtension.UI.Views.Controls;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -266,7 +261,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
                 RaisePropertyChanged(nameof(TotalScripts));
 
-                foreach (var dto in result.Data)
+                foreach (var dto in result.Scripts)
                 {                    
                     Scripts.Add(new ScriptRowViewModel(
                         dto,
@@ -311,11 +306,11 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
                     scriptType: ScriptType,
                     cancellationToken: _cts.Token);
 
-                _myScriptsTotal = result.Count;
+                _myScriptsTotal = result.Scripts.Count;
 
                 RaisePropertyChanged(nameof(MyScriptsTotal));
 
-                foreach (var dto in result)
+                foreach (var dto in result.Scripts)
                 {
                     MyScripts.Add(new MyScriptRowViewModel(
                         dto,
@@ -425,8 +420,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
         public async Task ApplySortAsync(string field, string order)
         {
-            SortField = Enum.Parse<ScriptSortField>(field);
-            SortOrder = Enum.Parse<SortOrder>(order);
+            //SortField = Enum.Parse<ScriptSortField>(field);
+            SortField = (ScriptSortField)Enum.Parse(typeof(ScriptSortField), field);
+            SortOrder = (SortOrder)Enum.Parse(typeof(SortOrder), order);
 
             await ReloadAsync();
         }
@@ -512,7 +508,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
         private void OnUploadVersion(MyScriptRowViewModel row)
         {
-            var vm = new UploadVersionViewModel(row.Slug, _scriptService);
+            var vm = new UploadVersionViewModel(row.Slug, _scriptService, _scriptLoadService);
 
             var dialog = new UploadVersionDialog
             {

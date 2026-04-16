@@ -1,16 +1,14 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Models.Scripts;
-using BIMformative.DynamoExtension.Services.Auth;
-using BIMformative.DynamoExtension.Services.Script;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
+using BIMformative.Core.Models.Scripts;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.UI.Views.Controls;
-using Dynamo.ViewModels;
 using Dynamo.Wpf.Utilities;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -20,45 +18,83 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
     public sealed class PublishTabViewModel : TabItemViewModel
     {
         private readonly IScriptService _scriptService;
+        private readonly IScriptLoadService _scriptLoadService;
 
         private string _title = string.Empty;
         private string _description = string.Empty;
         private string _demoLink = string.Empty;
         private string _selectedScriptType = "Revit";
         private string _uploadedFilePath = string.Empty;
-        private string? _parsedJson;
+        private string _parsedJson;
         private bool _isPublishing;
         private bool _isAnalyzing;
         private bool _isPublic;
         private string _newTag = string.Empty;
-
         private ScriptSourceType _sourceType = ScriptSourceType.None;
-        private string? _workspaceJson;
-
         private string _uploadId = string.Empty;
         private string _storagePath = string.Empty;
-
         private double _publishProgress;
 
-        public string AnalyzeButtonText =>
-            IsAnalyzing ? "Analyzing..." : "Analyze";
+        public PublishTabViewModel(
+            IAuthService auth, 
+            IScriptService scriptService, 
+            IScriptLoadService scriptLoadService)
+            : base(
+                  header: "Publish Script",
+                  contentFactory: () => new PublishControl())
+        {
+            if (Content is PublishControl control)
+                control.DataContext = this;
 
-        public string AnalyzeWrokspaceButtonText =>
-            IsAnalyzing ? "Analyzing..." : "Analyze Current Script";
+            _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
+            _scriptLoadService = scriptLoadService ?? throw new ArgumentNullException(nameof(scriptLoadService));
 
-        public string PublishButtonText =>
-            IsPublishing ? "Publishing..." : "Publish";
+            UploadScriptCommand = new RelayCommand(UploadScript);
+            AnalyzeScriptCommand = new AsyncRelayCommand(AnalyzeAsync, () => CanAnalyzeFile);
+            AnalyzeWorkspaceCommand = new AsyncRelayCommand(AnalyzeWorkspace, () => CanAnalyzeWorkspace);
+            PublishCommand = new AsyncRelayCommand(PublishAsync, () => CanPublish);
+            CancelCommand = new RelayCommand(Cancel);
+            AddTagCommand = new RelayCommand(AddTag);
+            RemoveTagCommand = new RelayCommand<string>(RemoveTag);
+            SelectScriptTypeCommand = new RelayCommand<string>(type =>
+            {
+                if (!string.IsNullOrWhiteSpace(type))
+                    SelectedScriptType = type;
+            });
 
+            RefreshState();            
+        }
+
+        #region Display Text
+
+        public string AnalyzeButtonText => IsAnalyzing ? "Analyzing..." : "Analyze";
+        public string AnalyzeWorkspaceButtonText => IsAnalyzing ? "Analyzing..." : "Analyze Current Script";
+        public string PublishButtonText => IsPublishing ? "Publishing..." : "Publish";
+
+        #endregion
+
+        #region Properties
         public string Title 
         {
             get => _title; 
-            set { _title = value; RaisePropertyChanged(); RaisePropertyChanged(nameof(CanPublish)); } 
+            set 
+            { 
+                _title = value; 
+                RaisePropertyChanged(); 
+                RaisePropertyChanged(nameof(CanPublish));
+                (PublishCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            } 
         }
 
         public string Description 
         { 
             get => _description; 
-            set { _description = value; RaisePropertyChanged(); } 
+            set 
+            {
+                if (_description == value) return;
+                _description = value; 
+                RaisePropertyChanged(); 
+            } 
         }
 
         public string DemoLink 
@@ -68,7 +104,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         }
 
         public ObservableCollection<string> ScriptTypes { get; } = 
-            new()  { "Revit", "Civil 3D" };
+            new ObservableCollection<string>  { "Revit", "Civil 3D" };
 
         public string SelectedScriptType 
         { 
@@ -76,7 +112,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             set { _selectedScriptType = value; RaisePropertyChanged(); } 
         }
 
-        public ObservableCollection<string> Tags { get; } = new();
+        public ObservableCollection<string> Tags { get; } = new ObservableCollection<string>();
         
         public bool IsPublic 
         { 
@@ -84,10 +120,15 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             set { _isPublic = value; RaisePropertyChanged(); } 
         }
 
-        public string? ParsedJson 
+        public string ParsedJson 
         { 
             get => _parsedJson; 
-            set { _parsedJson = value; RaisePropertyChanged(); } 
+            set 
+            { 
+                _parsedJson = value; 
+                RaisePropertyChanged(); 
+                RefreshState();
+            } 
         }
 
         public bool IsPublishing 
@@ -100,7 +141,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                     _isPublishing = value;
                     RaisePropertyChanged();
                     RaisePropertyChanged(nameof(PublishButtonText));
-                    RaisePropertyChanged(nameof(CanPublish));
+                    RefreshState();
                 }                
             } 
         }
@@ -115,9 +156,8 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                     _isAnalyzing = value;
                     RaisePropertyChanged();
                     RaisePropertyChanged(nameof(AnalyzeButtonText));
-                    RaisePropertyChanged(nameof(AnalyzeWrokspaceButtonText));
-                    RaisePropertyChanged(nameof(CanAnalyze));
-                    RaisePropertyChanged(nameof(CanPublish));
+                    RaisePropertyChanged(nameof(AnalyzeWorkspaceButtonText));
+                    RefreshState();
                 }
             } 
         }
@@ -128,16 +168,25 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             set { _newTag = value; RaisePropertyChanged(); }
         }
 
-        public string UplaodId
+        public string UploadId
         {
             get => _uploadId;
-            set { _uploadId = value; RaisePropertyChanged(); }
+            set 
+            { 
+                _uploadId = value; 
+                RaisePropertyChanged(); 
+            }
         }
 
         public string StoragePath
         {
             get => _storagePath;
-            set { _storagePath = value; RaisePropertyChanged(); }
+            set 
+            { 
+                _storagePath = value;
+                RaisePropertyChanged();
+                RefreshState();
+            }
         }
 
         public double PublishProgress
@@ -145,14 +194,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             get => _publishProgress;
             set { _publishProgress = value; RaisePropertyChanged(); }
         }
-
-        private bool _isChecked;
-        public bool IsChecked
-        {
-            get => _isChecked;
-            set { _isChecked = value; RaisePropertyChanged(); }
-        }
-
+        
         public ScriptSourceType SourceType
         {
             get => _sourceType;
@@ -160,10 +202,11 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             {
                 _sourceType = value; 
                 RaisePropertyChanged();
-                RaisePropertyChanged(nameof(CanAnalyze));
-                RaisePropertyChanged(nameof(CanPublish));
+                RefreshState();
             }
         }
+
+        public bool HasOpenWorkspace => _scriptLoadService.HasOpenWorkspace();
 
         public string ShowFileName =>
             string.IsNullOrEmpty(_uploadedFilePath)
@@ -171,49 +214,38 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             : Path.GetFileName(_uploadedFilePath);
 
         // State
-        public bool CanAnalyze => 
-            !IsAnalyzing && 
-            (
-                (SourceType == ScriptSourceType.File && !string.IsNullOrEmpty(_uploadedFilePath)) ||
-                (SourceType == ScriptSourceType.Workspace && !string.IsNullOrEmpty(_workspaceJson))
-            );
+        public bool CanAnalyzeFile =>
+            !IsAnalyzing &&
+            SourceType == ScriptSourceType.File &&
+            !string.IsNullOrEmpty(_uploadedFilePath);
 
-        public bool CanPublish => !IsPublishing && CanAnalyze && !string.IsNullOrEmpty(Title);
+        public bool CanAnalyzeWorkspace =>
+            !IsAnalyzing &&
+            HasOpenWorkspace;
 
-        // Commands
+        public bool CanPublish =>
+            !IsPublishing &&
+            !IsAnalyzing &&
+            !string.IsNullOrWhiteSpace(Title) &&
+            !string.IsNullOrWhiteSpace(ParsedJson) &&
+            !string.IsNullOrWhiteSpace(StoragePath);
+
+        #endregion
+
+        #region Commands
+
         public ICommand UploadScriptCommand { get; }
         public ICommand AnalyzeScriptCommand { get; }
+        public ICommand AnalyzeWorkspaceCommand { get; }
         public ICommand PublishCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand AddTagCommand { get; }
         public ICommand RemoveTagCommand { get; }
         public ICommand SelectScriptTypeCommand { get; }
-        public ICommand AnalyzeWorkspaceCommand { get; }
 
-        public PublishTabViewModel(IAuthService auth, IScriptService scriptService)
-            : base(
-                  header: "Publish Script",
-                  contentFactory: () => new PublishControl())
-        {
-            if (Content is PublishControl control)
-                control.DataContext = this;
+        #endregion
 
-            _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
-
-            UploadScriptCommand = new RelayCommand(UploadScript);
-            AnalyzeScriptCommand = new AsyncRelayCommand(AnalyzeAsync);
-            PublishCommand = new AsyncRelayCommand(PublishAsync);
-            CancelCommand = new RelayCommand(Cancel);
-            AddTagCommand = new RelayCommand(AddTag);
-            RemoveTagCommand = new RelayCommand<string>(RemoveTag);
-            SelectScriptTypeCommand = new RelayCommand<string>(type =>
-            {
-                SelectedScriptType = type;
-            });
-            AnalyzeWorkspaceCommand = new AsyncRelayCommand(AnalyzeWorkspace);
-        }
-
-        
+        #region Actions
 
         private void UploadScript()
         {
@@ -222,18 +254,18 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                 Filter = "Dynamo Script (*.dyn)|*.dyn"
             };
 
-            if (dialog.ShowDialog() == true)
-            {
-                _uploadedFilePath = dialog.FileName;
-                RaisePropertyChanged(nameof(ShowFileName));
-                RaisePropertyChanged(nameof(CanAnalyze));
-                RaisePropertyChanged(nameof(CanPublish));
-            }
+            if (dialog.ShowDialog() != true)
+                return;
+
+            _uploadedFilePath = dialog.FileName;
+            SourceType = ScriptSourceType.File;
+
+            RefreshState();
         }
 
         private async Task AnalyzeAsync()
         {
-            if (!CanAnalyze) return;
+            if (!CanAnalyzeFile) return;
 
             IsAnalyzing = true;
 
@@ -241,47 +273,36 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             {
                 var result = await _scriptService.AnalyzeAsync(_uploadedFilePath);
 
-                ParsedJson = JsonSerializer.Serialize(result.ScriptData);
-
-                _uploadId = result.UploadId;
-                _storagePath = result.StoragePath;
-
-                // PREFILL - NOT LOCK
-                if (string.IsNullOrWhiteSpace(Title))
-                    Title = result.ScriptData?.Name ?? string.Empty;
-
-                if (string.IsNullOrWhiteSpace(Description))
-                    Description = result.ScriptData?.Description ?? string.Empty;
-              
-                Tags.Clear();
+                ApplyAnalyzeResult(result);
+            }
+            catch (Exception ex)
+            {
+                MessageBoxService.Show(
+                    ex.Message,
+                    "Analyze failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
             finally
             {
                 IsAnalyzing = false;
+                RefreshState();
             }
         }
 
         private async Task AnalyzeWorkspace()
         {
+            SourceType = ScriptSourceType.Workspace;
+            _uploadedFilePath = string.Empty;
+            RefreshState();
+
             IsAnalyzing = true;
 
             try
             {
-                var result = await _scriptService.AnalyzeWorkspaceAsync();
+                var result = await _scriptLoadService.AnalyzeWorkspaceAsync();
 
-                ParsedJson = JsonSerializer.Serialize(result.ScriptData);
-
-                _uploadId = result.UploadId;
-                _storagePath = result.StoragePath;
-
-                // PREFILL - NOT LOCK
-                if (string.IsNullOrWhiteSpace(Title))
-                    Title = result.ScriptData?.Name ?? string.Empty;
-
-                if (string.IsNullOrWhiteSpace(Description))
-                    Description = result.ScriptData?.Description ?? string.Empty;
-
-                Tags.Clear();
+                ApplyAnalyzeResult(result);
             }
             catch (OperationCanceledException)
             {
@@ -299,14 +320,16 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             }
             finally 
             { 
-                IsAnalyzing = false; 
+                IsAnalyzing = false;
+                RefreshState();
             }
 
         }
 
         private async Task PublishAsync()
         {
-            if (!CanPublish) return;
+            if (!CanPublish) 
+                return;
 
             IsPublishing = true;
             PublishProgress = 0;
@@ -315,8 +338,8 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             {
                 var request = new ScriptPublishRequestDto
                 {
-                    StoragePath = _storagePath,
-                    ParsedJson = ParsedJson!,
+                    StoragePath = StoragePath,
+                    ParsedJson = ParsedJson,
                     Title = Title,
                     Description = Description,
                     ScriptType = SelectedScriptType == "Revit" ? "revit" : "civil3d",
@@ -325,12 +348,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                     IsPublic = IsPublic
                 };
 
-                var progress = new Progress<double>(p =>
-                {
-                    PublishProgress = p * 100;
-                });
+                var progress = new Progress<double>(p => PublishProgress = p * 100);                
 
-                await _scriptService.PublishAsync(request, progress);
+                await _scriptService.PublishAsync(request);
 
                 // SUCCESS FEEDBACK
                 MessageBoxService.Show(
@@ -356,6 +376,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             {
                 IsPublishing = false;
                 PublishProgress = 0;
+                RefreshState();
             }            
         }
         
@@ -370,9 +391,8 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                 Tags.Add(tag);
 
             NewTag = string.Empty;
-
             RaisePropertyChanged(nameof(Tags));
-            RaisePropertyChanged(nameof(CanPublish));
+            RefreshState();
         }
 
         private void RemoveTag(string tag)
@@ -384,13 +404,15 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                 Tags.Remove(tag);
 
             RaisePropertyChanged(nameof(Tags));
-            RaisePropertyChanged(nameof(CanPublish));
+            RefreshState();
         }
 
         private void Cancel()
         {
             // Core fields
             _uploadedFilePath = string.Empty;
+            SourceType = ScriptSourceType.None;
+
             Title = string.Empty;
             Description = string.Empty;
             DemoLink = string.Empty;
@@ -399,6 +421,8 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
 
             // Analyze state
             ParsedJson = null;
+            UploadId = string.Empty;
+            StoragePath = string.Empty;
             NewTag = string.Empty;
 
             // Flags
@@ -407,11 +431,40 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
 
             // Collections
             Tags.Clear();
+            RaisePropertyChanged(nameof(Tags));
 
-            // Notify derived UI
-            RaisePropertyChanged(nameof(ShowFileName));
-            RaisePropertyChanged(nameof(CanAnalyze));
-            RaisePropertyChanged(nameof(CanPublish));
+            RefreshState();
         }
+
+        private void ApplyAnalyzeResult(ScriptAnalyzeResponseDto result)
+        {
+            ParsedJson = JsonConvert.SerializeObject(result.ScriptData);
+            UploadId = result.UploadId;
+            StoragePath = result.StoragePath;
+
+            if (string.IsNullOrWhiteSpace(Title))
+                Title = result.ScriptData?.Name ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(Description))
+                Description = result.ScriptData?.Description ?? string.Empty;
+
+            Tags.Clear();
+            RaisePropertyChanged(nameof(Tags));
+        }
+
+        private void RefreshState()
+        {
+            RaisePropertyChanged(nameof(ShowFileName));
+            RaisePropertyChanged(nameof(HasOpenWorkspace));
+            RaisePropertyChanged(nameof(CanAnalyzeFile));
+            RaisePropertyChanged(nameof(CanAnalyzeWorkspace));
+            RaisePropertyChanged(nameof(CanPublish));
+
+            (AnalyzeScriptCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (AnalyzeWorkspaceCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (PublishCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+        }
+
+        #endregion
     }
 }

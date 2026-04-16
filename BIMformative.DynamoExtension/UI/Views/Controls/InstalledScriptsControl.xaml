@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIMformative.DynamoExtension.UI.Views"
-             xmlns:models="clr-namespace:BIMformative.DynamoExtension.Models"
              xmlns:controls="clr-namespace:BIMformative.DynamoExtension.UI.Views.Controls"
+             xmlns:models="clr-namespace:BIMformative.Core.Models;assembly=BIMformative.Core"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>

@@ -361,7 +361,3 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-
-# Private Projects
-BIMformative.Dynamo.Core/
-BIMformative.Migrator/

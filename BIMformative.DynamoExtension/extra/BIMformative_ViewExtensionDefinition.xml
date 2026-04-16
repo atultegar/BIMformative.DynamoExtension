@@ -1,5 +1,0 @@
-﻿<ViewExtensionDefinition>
-	<AssemblyPath>bin\Debug\net8.0-windows\BIMformative.DynamoExtension.dll</AssemblyPath>
-	<TypeName>BIMformative.DynamoExtension.BIMformativeViewExtension</TypeName>
-</ViewExtensionDefinition>
-

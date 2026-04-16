@@ -272,17 +272,18 @@
                     Width="120"
                     Command="{Binding AnalyzeScriptCommand}"
                     Margin="0,20,0,0"
-                    IsEnabled="{Binding CanAnalyze}"/>
+                    IsEnabled="{Binding CanAnalyzeFile}"/>
 
                 <Border Margin="0,10,0,0" BorderThickness="0,0,0,1" BorderBrush="#78716C"/>
                 
                 <TextBlock Margin="0,5" Text="or" Foreground="#C7C7C7" HorizontalAlignment="Center"/>
 
-                <Button Content="{Binding AnalyzeWrokspaceButtonText, FallbackValue=Analyze Current Script}"
+                <Button Content="{Binding AnalyzeWorkspaceButtonText, FallbackValue=Analyze Current Workspace}"
                         Command="{Binding AnalyzeWorkspaceCommand}"
                         Style="{StaticResource ButtonSecondary}"
                         Margin="0,10,0,0"
-                        Width="175"/>
+                        Width="200"
+                        IsEnabled="{Binding CanAnalyzeWorkspace}"/>
             </StackPanel>
 
             <!--Bottom actions-->

@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace BIMformative.DynamoExtension.UI.Views
 {
@@ -41,7 +30,7 @@ namespace BIMformative.DynamoExtension.UI.Views
         {
             await webView.EnsureCoreWebView2Async();
 
-            string json = JsonSerializer.Serialize(_payload);
+            string json =JsonConvert.SerializeObject(_payload);
 
             // Escape safely for JS injection
             string escapedJson = json

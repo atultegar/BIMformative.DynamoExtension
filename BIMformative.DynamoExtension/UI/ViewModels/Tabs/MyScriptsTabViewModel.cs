@@ -1,12 +1,10 @@
-﻿using BIMformative.DynamoExtension.Services;
-using BIMformative.DynamoExtension.Services.Auth;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
 using BIMformative.DynamoExtension.UI.Views.Controls;
 using Dynamo.Wpf.Utilities;
 using System;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -54,7 +52,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
             if (!_auth.IsAuthenticated)
             {
                 Scripts.ClearMyScripts();
-                Scripts.MyCurrentState = Models.ViewState.NotAuthenticated;
+                Scripts.MyCurrentState = ViewState.NotAuthenticated;
                 _initialized = false;
                 return;
             }
@@ -71,7 +69,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
                 if (!_auth.IsAuthenticated)
                 {
                     Scripts.ClearMyScripts();
-                    Scripts.MyCurrentState = Models.ViewState.NotAuthenticated;
+                    Scripts.MyCurrentState = ViewState.NotAuthenticated;
                     _initialized = false;
                     return;
                 }

@@ -1,18 +1,15 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Models.Scripts;
-using BIMformative.DynamoExtension.Services;
+﻿using BIMformative.Core.Interfaces;
+using Models = BIMformative.Core.Models;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.Views;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Markup;
+using BIMformative.Core.Models.Scripts;
 
 namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 {
@@ -20,11 +17,12 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
     {
         private readonly IScriptService _scriptService;
         private readonly IDialogService _dialogService;
+        private readonly IScriptLoadService _scriptLoadService;
 
         private bool _isInitialized;
 
-        public IEnumerable<ScriptType> ScriptTypes =>
-            Enum.GetValues(typeof(ScriptType)).Cast<ScriptType>();
+        public IEnumerable<Models.ScriptType> ScriptTypes =>
+            Enum.GetValues(typeof(Models.ScriptType)).Cast<Models.ScriptType>();
 
         public EditScriptViewModel(
             string slug,
@@ -36,6 +34,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
         {            
             _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+            _scriptLoadService = loader ?? throw new ArgumentNullException(nameof(loader));
 
             SaveMetadataCommand = new AsyncRelayCommand(SaveMetadataAsync);
             UploadVersionCommand = new AsyncRelayCommand(UploadVersionAsync);
@@ -63,8 +62,8 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
             set => SetProperty(ref _editDescription, value);
         }
 
-        private ScriptType _editScriptType;
-        public ScriptType EditScriptType
+        private Models.ScriptType _editScriptType;
+        public Models.ScriptType EditScriptType
         {
             get => _editScriptType;
             set => SetProperty(ref _editScriptType, value);
@@ -153,7 +152,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
             EditVersion = Details?.Current_Version_Number.ToString();
 
-            if (Enum.TryParse<ScriptType>(Details?.Script_Type, out var parsedType))
+            if (Enum.TryParse<Models.ScriptType>(Details?.Script_Type, out var parsedType))
                 EditScriptType = parsedType;
             else
                 EditScriptType = Models.ScriptType.Revit;
@@ -184,7 +183,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Scripts
 
         private async Task UploadVersionAsync()
         {
-            var vm = new UploadVersionViewModel(Details.Slug, _scriptService);
+            var vm = new UploadVersionViewModel(Details.Slug, _scriptService, _scriptLoadService);
 
             var dialog = new UploadVersionDialog
             {

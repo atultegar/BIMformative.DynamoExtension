@@ -1,6 +1,6 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Models.Scripts;
+﻿using BIMformative.Core.Models;
+using BIMformative.Core.Models.Scripts;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using System;
 using System.Windows.Input;

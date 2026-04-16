@@ -1,6 +1,8 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Settings;
 using BIMformative.DynamoExtension.UI.Views.Controls;
+using Dynamo.UI;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
@@ -52,14 +54,11 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
 
         private void BrowsePath()
         {
-            var dialog = new OpenFolderDialog
-            {
-                Title = "Select default script save folder"
-            };
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
 
-            if (dialog.ShowDialog() == true && Directory.Exists(dialog.FolderName))
+            if (Directory.Exists(dialog.SelectedPath))
             {
-                DefaultScriptSavePath = dialog.FolderName;
+                DefaultScriptSavePath = dialog.SelectedPath;
             }
         }
 

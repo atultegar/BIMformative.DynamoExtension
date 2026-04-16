@@ -1,11 +1,8 @@
-﻿using Dynamo.Wpf.Utilities;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.Core.Models;
+using Dynamo.Wpf.Utilities;
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace BIMformative.DynamoExtension.Services.Settings
@@ -20,13 +17,17 @@ namespace BIMformative.DynamoExtension.Services.Settings
                 "File already exists",
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Warning
-                );
-            return result switch 
+            );
+
+            switch (result)
             {
-                MessageBoxResult.Yes => OverwriteDecision.Overwrite,
-                MessageBoxResult.No => OverwriteDecision.SaveAs,
-                _ => OverwriteDecision.Cancel
-            };
+                case MessageBoxResult.Yes:
+                    return OverwriteDecision.Overwrite;
+                case MessageBoxResult.No:
+                    return OverwriteDecision.SaveAs;
+                default:
+                    return OverwriteDecision.Cancel;
+            }
         }
 
         public string? ShowSaveAs(string defaultPath)

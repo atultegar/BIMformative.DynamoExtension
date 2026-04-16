@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace BIMformative.DynamoExtension.Services.Interfaces
 {
@@ -17,7 +13,6 @@ namespace BIMformative.DynamoExtension.Services.Interfaces
 
         Task<bool> EnsureWorkspaceCanCloseAsync();
         void CloseCurrentWorkspace();
-        void OpenWorkspace(string filePath);
-        
+        void OpenWorkspace(string filePath);        
     }
 }

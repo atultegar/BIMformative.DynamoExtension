@@ -1,11 +1,7 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Models;
-using BIMformative.DynamoExtension.Models.Scripts;
-using BIMformative.DynamoExtension.Services;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
 using BIMformative.DynamoExtension.UI.ViewModels.Scripts;
-using BIMformative.DynamoExtension.UI.Views;
 using BIMformative.DynamoExtension.UI.Views.Controls;
 using Dynamo.Wpf.Utilities;
 using System;

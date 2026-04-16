@@ -1,14 +1,10 @@
-﻿using BIMformative.DynamoExtension.Infrastructure;
-using BIMformative.DynamoExtension.Services;
-using BIMformative.DynamoExtension.Services.Auth;
+﻿using BIMformative.Core.Interfaces;
+using BIMformative.DynamoExtension.Infrastructure;
 using BIMformative.DynamoExtension.Services.Interfaces;
-using BIMformative.DynamoExtension.Services.Script;
-using BIMformative.DynamoExtension.Services.Settings;
 using BIMformative.DynamoExtension.UI.ViewModels.Base;
 using BIMformative.DynamoExtension.UI.ViewModels.Tabs;
 using System;
 using System.Collections.ObjectModel;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -20,11 +16,9 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
         // Fields
         // ----------------------------------------------------------------
 
-        private readonly IAuthService _auth;
-        private readonly IScriptApiClient _api;        
+        private readonly IAuthService _auth;     
         private readonly IScriptLoadService _loader;
         private readonly ISettingsService _settings;
-        private readonly IScriptAnalyzeService _scriptAnalyzeService;
         private readonly IScriptService _scriptService;
         private readonly IDownloadedScriptsService _downloadedScriptsService;
         private readonly IScriptCompareService _scriptCompareService;
@@ -93,20 +87,16 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
         // ----------------------------------------------------------------
         public ScriptManagerViewModel(
             IAuthService auth,
-            IScriptApiClient api,
             IScriptLoadService loader,
             ISettingsService settings,
-            IScriptAnalyzeService scriptAnalyzeService,
             IScriptService scriptService,
             IDownloadedScriptsService downloadedScriptService,
             IScriptCompareService scriptCompareService,
             IDialogService dialogService)
         {
             _auth = auth ?? throw new ArgumentNullException(nameof(auth));
-            _api = api ?? throw new ArgumentNullException(nameof(api));
             _loader = loader ?? throw new ArgumentNullException(nameof(loader));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-            _scriptAnalyzeService = scriptAnalyzeService ?? throw new ArgumentNullException(nameof(scriptAnalyzeService));
             _scriptService = scriptService ?? throw new ArgumentNullException(nameof(scriptService));
             _downloadedScriptsService = downloadedScriptService ?? throw new ArgumentNullException(nameof(downloadedScriptService));
             _scriptCompareService = scriptCompareService ?? throw new ArgumentNullException(nameof(scriptCompareService));
@@ -130,7 +120,7 @@ namespace BIMformative.DynamoExtension.UI.ViewModels
             Tabs = new ObservableCollection<TabItemViewModel>
             {
                 searchTab,
-                new PublishTabViewModel(_auth, _scriptService),
+                new PublishTabViewModel(_auth, _scriptService, _loader),
                 installedTab,
                 new MyScriptsTabViewModel(_scriptService, _auth, _loader, _scriptCompareService, _dialogService),
                 new SettingsTabViewModel(_settings)
