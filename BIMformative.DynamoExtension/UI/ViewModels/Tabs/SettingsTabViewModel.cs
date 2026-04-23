@@ -55,8 +55,10 @@ namespace BIMformative.DynamoExtension.UI.ViewModels.Tabs
         private void BrowsePath()
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            
+            var result = dialog.ShowDialog();
 
-            if (Directory.Exists(dialog.SelectedPath))
+            if (result.ToString() != string.Empty)
             {
                 DefaultScriptSavePath = dialog.SelectedPath;
             }

@@ -1,11 +1,22 @@
 <Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.Props" />
+  </Folder>
   <Project Path="BIMformative.Core/BIMformative.Core.csproj" Id="5bb0a38d-4cae-49d0-bb3f-0429c4b43313" />
-  <Project Path="BIMformative.DynamoExtension.Setup/BIMformative.DynamoExtension.Setup.vdproj" Type="Installer">
-    <Build />
-  </Project>
   <Project Path="BIMformative.DynamoExtension/BIMformative.DynamoExtension.csproj">
-    <BuildType Solution="Debug|*" Project="Debug-Revit2025" />
+    <BuildType Solution="Debug|Any CPU" Project="Release-Revit2023" />
+    <BuildType Solution="Debug|x64" Project="Release-Revit2023" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="Debug|ARM64" Project="x64" />
+    <Platform Solution="Debug|x86" Project="x64" />
   </Project>
   <Project Path="BIMformative.Infrastructure/BIMformative.Infrastructure.csproj" Id="cedeb9ae-e94a-403c-9c92-8ac9608afae2" />
+  <Project Path="BIMformative.Installer/BIMformative.Installer.csproj" Id="565f40ee-1552-491c-a5fd-e09c765ed7ae" />
   <Project Path="BIMformative.TestConsole/BIMformative.TestConsole.csproj" Id="15b6bacf-66ac-44de-99b4-6c63d8542107" />
 </Solution>

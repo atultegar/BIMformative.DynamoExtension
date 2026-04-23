@@ -1,5 +1,5 @@
 ﻿<ViewExtensionDefinition>
-	<AssemblyPath>C:\ProgramDataBIMformative\DynamoExtension\2025\BIMformative.DynamoExtension.dll</AssemblyPath>
+	<AssemblyPath>C:\ProgramData\BIMformative\DynamoExtension\2025\BIMformative.DynamoExtension.dll</AssemblyPath>
 	<TypeName>BIMformative.DynamoExtension.BIMformativeViewExtension</TypeName>
 </ViewExtensionDefinition>
 

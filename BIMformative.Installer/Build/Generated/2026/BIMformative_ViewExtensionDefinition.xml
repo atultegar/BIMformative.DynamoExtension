@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ViewExtensionDefinition>
+  <AssemblyPath>C:\ProgramData\BIMformative\DynamoExtension\2026\BIMformative.DynamoExtension.dll</AssemblyPath>
+  <TypeName>BIMformative.DynamoExtension.BIMformativeViewExtension</TypeName>
+</ViewExtensionDefinition>

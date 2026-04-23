@@ -1,0 +1,14 @@
+﻿<Project>
+	<PropertyGroup>
+		<BIMformativeVersion>1.0.0</BIMformativeVersion>
+
+		<Version>$(BIMformativeVersion)</Version>
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+		<InformationalVersion>$(BIMformativeVersion)</InformationalVersion>
+
+		<Company>BIMformative</Company>
+		<Product>BIMformative DynamoExtension</Product>
+		<Authors>BIMformative</Authors>
+	</PropertyGroup>
+</Project>

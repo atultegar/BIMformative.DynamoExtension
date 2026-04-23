@@ -14,49 +14,97 @@
 		
 		<Configurations>
 			Debug;Release;Debug-Revit2023;Debug-Revit2024;Debug-Revit2025;Debug-Revit2026;
-			Release-Revit2023;Release-Revit2024;Release-Revit2025;Release-Revit2026
+			Release-Revit2023;Release-Revit2024;Release-Revit2025;Release-Revit2026;
+			Debug-C3D2023;Debug-C3D2024;Debug-C3D2025;Debug-C3D2026;
+			Release-C3D2023;Release-C3D2024;Release-C3D2025;Release-C3D2026
 		</Configurations>
+
+		<PackageOutputRoot>$(MSBuildProjectDirectory)\artifacts\$(Configuration)\</PackageOutputRoot>
+		
+		<Platforms>x64</Platforms>
     </PropertyGroup>
 	
 	<!--Revit version selection-->
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug-Revit2023' or '$(Configuration)' == 'Release-Revit2023'">
-		<RevitVersion>2023</RevitVersion>
-		<DefineConstants>$(DefineConstants);REVIT2023</DefineConstants>
+		<HostProduct>Revit</HostProduct>
+		<HostYear>2023</HostYear>
+		<DefineConstants>$(DefineConstants);REVIT2023;NET48</DefineConstants>
 		<TargetFramework>net48</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug-Revit2024' or '$(Configuration)' == 'Release-Revit2024'">
-		<RevitVersion>2024</RevitVersion>
-		<DefineConstants>$(DefineConstants);REVIT2024</DefineConstants>
+		<HostProduct>Revit</HostProduct>
+		<HostYear>2024</HostYear>
+		<DefineConstants>$(DefineConstants);REVIT2024;NET48</DefineConstants>
 		<TargetFramework>net48</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug-Revit2025' or '$(Configuration)' == 'Release-Revit2025'">
-		<RevitVersion>2025</RevitVersion>
-		<DefineConstants>$(DefineConstants);REVIT2025</DefineConstants>
+		<HostProduct>Revit</HostProduct>
+		<HostYear>2025</HostYear>
+		<DefineConstants>$(DefineConstants);REVIT2025;NET8_0_WINDOWS</DefineConstants>
 		<TargetFramework>net8.0-windows</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Debug-Revit2026' or '$(Configuration)' == 'Release-Revit2026'">
-		<RevitVersion>2026</RevitVersion>
-		<DefineConstants>$(DefineConstants);REVIT2026</DefineConstants>
+		<HostProduct>Revit</HostProduct>
+		<HostYear>2026</HostYear>
+		<DefineConstants>$(DefineConstants);REVIT2026;NET8_0_WINDOWS</DefineConstants>
+		<TargetFramework>net8.0-windows</TargetFramework>
+	</PropertyGroup>
+
+	<!--Civil 3D version selection-->
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug-C3D2023' or '$(Configuration)' == 'Release-C3D2023'">
+		<HostProduct>Civil3D</HostProduct>
+		<HostYear>2023</HostYear>
+		<DefineConstants>$(DefineConstants);CIVIL3D2023;C3D2023;NET48</DefineConstants>
+		<TargetFramework>net48</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug-C3D2024' or '$(Configuration)' == 'Release-C3D2024'">
+		<HostProduct>Civil3D</HostProduct>
+		<HostYear>2024</HostYear>
+		<DefineConstants>$(DefineConstants);CIVIL3D2024;C3D2024;NET48</DefineConstants>
+		<TargetFramework>net48</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug-C3D2025' or '$(Configuration)' == 'Release-C3D2025'">
+		<HostProduct>Civil3D</HostProduct>
+		<HostYear>2025</HostYear>
+		<DefineConstants>$(DefineConstants);CIVIL3D2025;C3D2025;NET8_0_WINDOWS</DefineConstants>
+		<TargetFramework>net8.0-windows</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Debug-C3D2026' or '$(Configuration)' == 'Release-C3D2026'">
+		<HostProduct>Civil3D</HostProduct>
+		<HostYear>2026</HostYear>
+		<DefineConstants>$(DefineConstants);CIVIL3D2026;C3D2026;NET8_0_WINDOWS</DefineConstants>
 		<TargetFramework>net8.0-windows</TargetFramework>
 	</PropertyGroup>
 	
 	<!--Fallback to 2025 if config not selected-->
-	<PropertyGroup Condition="'$(RevitVersion)' == ''">
-		<RevitVersion>2025</RevitVersion>
+	<PropertyGroup Condition="'$(HostProduct)' == ''">
+		<HostProduct>Revit</HostProduct>
+		<HostYear>2025</HostYear>
 		<DefineConstants>$(DefineConstants);REVIT2025;NET8_0_WINDOWS</DefineConstants>
 		<TargetFramework>net8.0-windows</TargetFramework>
 	</PropertyGroup>
 	
-	
-	<!--Dynamic Revit/Dynamo paths-->
+	<!--Output-->
 	<PropertyGroup>
-		<RevitInstallRoot>C:\Program Files\Autodesk\Revit $(RevitVersion)</RevitInstallRoot>
-		<DynamoPath>$(RevitInstallRoot)\AddIns\DynamoForRevit</DynamoPath>
-		<OutputPath>bin\$(Configuration)\$(TargetFramework)\</OutputPath>
-		<PackageOutputRoot>$(MSBuildProjectDirectory)\artifacts\$(Configuration)\</PackageOutputRoot>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+	</PropertyGroup>
+	
+	
+	<!--Host-specific install paths-->
+	<PropertyGroup Condition="'$(HostProduct)' == 'Revit'">
+		<HostInstallRoot>C:\Program Files\Autodesk\Revit $(HostYear)</HostInstallRoot>
+		<DynamoPath>$(HostInstallRoot)\AddIns\DynamoForRevit</DynamoPath>		
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(HostProduct)' == 'Civil3D'">
+		<HostInstallRoot>C:\Program Files\Autodesk\AutoCAD $(HostYear)</HostInstallRoot>
+		<DynamoPath>$(HostInstallRoot)\C3D\Dynamo\Core</DynamoPath>
 	</PropertyGroup>
 	
 	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
@@ -82,7 +130,7 @@
 		
 		<Reference Include="Microsoft.Practices.Prism">
 			<HintPath>$(DynamoPath)\Microsoft.Practices.Prism.dll</HintPath>
-			<Private>false</Private>
+			<Private>true</Private>
 		</Reference>
 	</ItemGroup>
       
@@ -112,11 +160,12 @@
 	<!--Package build output into a clean folder-->
 	<Target Name="PreparePackageFolder" AfterTargets="Build">
 		<MakeDir Directories="$(PackageOutputRoot)" />
+		
 		<ItemGroup>
-			<BuiltFiles Include="$(OutputPath)**\*.*" />
+			<PackageFiles Include="$(TargetDir)*.*" />
 		</ItemGroup>
-		<Copy SourceFiles="@(BuiltFiles)"
-			  DestinationFiles="@(BuiltFiles->'$(PackageOutoutRoot)%(RecursiveDir)%(Filename)%(Extension)')"
+		<Copy SourceFiles="@(PackageFiles)" 
+			  DestinationFolder="$(PackageOutputRoot)" 
 			  SkipUnchangedFiles="true" />
 	</Target>
 </Project>

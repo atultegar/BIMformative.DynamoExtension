@@ -16,6 +16,10 @@ using BIMformative.Infrastructure;
 using BIMformative.Infrastructure.Repositories;
 using BIMformative.Core.Services;
 using BIMformative.Infrastructure.Api;
+using BIMformative.Infrastructure.Logging;
+using System.Reflection;
+using System.IO;
+using System.Linq;
 
 namespace BIMformative.DynamoExtension
 {
@@ -23,6 +27,8 @@ namespace BIMformative.DynamoExtension
     {
         public string UniqueId => "bimformative.extension.view";
         public string Name => "BIMformative";
+
+        private static bool _assemblyResolverRegistered;
 
         private MenuItem? _extensionMenu;
         private ScriptManagerWindow? _managerWindow;
@@ -37,51 +43,169 @@ namespace BIMformative.DynamoExtension
         private IDownloadedScriptsService? _downloadedScriptsService;
         private IScriptCompareService? _scriptCompareService;
         private IDialogService? _dialogService;
+        private IAppLogger? _logger;
+        private IDownloadedScriptRepository downloadedRepo;
 
         // Infra
         private HttpClient? _authHttp;
         private HttpClient? _publicHttp;
 
         public void Loaded(ViewLoadedParams vlp)
-        {            
-            _dynamoWindow = vlp.DynamoWindow 
-                ?? throw new InvalidOperationException("Dynamo window is null.");
+        {
+            try
+            {
+                RegisterAssemblyResolver();
 
-            var dynamoViewModel = _dynamoWindow.DataContext as DynamoViewModel 
-                ?? throw new InvalidOperationException("Invalid Dynamo DataContext");
+                _logger = new FileLogger("BIMformative", Core.Models.Logging.LogLevel.Debug);
+                _logger.Info("Initializing BIMformative extension.");
 
-            _dynamoContext = new DynamoContext(dynamoViewModel, _dynamoWindow);
+                _dynamoWindow = vlp.DynamoWindow 
+                    ?? throw new InvalidOperationException("Dynamo window is null.");
+
+               
+                var dynamoViewModel = _dynamoWindow.DataContext as DynamoViewModel;
+
+                if (dynamoViewModel == null)
+                {
+                    var actualType = _dynamoWindow.DataContext != null
+                        ? _dynamoWindow.DataContext.GetType().FullName
+                        : "(null)";
+                                       
+
+                    _dynamoWindow.Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        TryInitializeAfterWindowReady(vlp);
+                    }));
+
+                    return;
+                }
+
+                _dynamoContext = new DynamoContext(dynamoViewModel, _dynamoWindow);
+
+                PreloadCriticalDependencies();
                         
-            InitializeServices();
+            
+                InitializeServices();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("InitializeServices failed: " + ex);
+                throw;
+            }
+            
             
             CreateMenu(vlp);
+            _logger.Info("Menu created.");
+        }
+
+        private void TryInitializeAfterWindowReady(ViewLoadedParams vlp)
+        {
+            try
+            {
+
+                var dynamoViewModel = _dynamoWindow != null
+                    ? _dynamoWindow.DataContext as DynamoViewModel
+                    : null;
+
+                if (dynamoViewModel == null)
+                {
+                    var actualType = _dynamoWindow != null && _dynamoWindow.DataContext != null
+                        ? _dynamoWindow.DataContext.GetType().FullName
+                        : "(null)";
+                    return;
+                };
+
+                _dynamoContext = new DynamoContext(dynamoViewModel, _dynamoWindow);
+
+                InitializeServices();
+
+                CreateMenu(vlp);
+            }
+            catch (Exception ex)
+            {
+                _logger?.Error("Retry initialization failed: " + ex);
+            }
+        }
+
+        private static void RegisterAssemblyResolver()
+        {
+            if (_assemblyResolverRegistered)
+                return;
+
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveFromExtensionFolder;
+            _assemblyResolverRegistered = true;
+        }
+
+        private static Assembly ResolveFromExtensionFolder(object sender, ResolveEventArgs args)
+        {
+            try
+            {
+                var requestedName = new AssemblyName(args.Name).Name;
+                if (string.IsNullOrWhiteSpace(requestedName))
+                    return null;
+
+                var extensionAssembly = typeof(BIMformativeViewExtension).Assembly;
+                var baseDir = Path.GetDirectoryName(extensionAssembly.Location);
+
+                if (string.IsNullOrWhiteSpace(baseDir) || !Directory.Exists(baseDir))
+                    return null;
+
+                var candidatePath = Path.Combine(baseDir, requestedName + ".dll");
+
+                if (File.Exists(candidatePath))
+                    return Assembly.LoadFrom(candidatePath);
+
+                var nestedCandidate = Directory
+                    .EnumerateFiles(baseDir, requestedName + ".dll", SearchOption.AllDirectories)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(nestedCandidate) && File.Exists(nestedCandidate))
+                    return Assembly.LoadFrom(nestedCandidate);
+            }
+            catch
+            {
+                // Never throw from AssemblyResolve
+            }
+
+            return null;
         }
 
         private void InitializeServices()
         {
             if (_dynamoContext == null)
                 throw new InvalidOperationException("DynamoContext not initialized");
+                        
             
             // Environment
-#if DEBUG_REVIT2025
+#if DEBUG_REVIT2023
             var env = Environments.Local;
 #else
             var env = Environments.Production;
-#endif
+#endif            
             // Http Clients
             _authHttp = new HttpClient { BaseAddress = env.ApiBaseAddress };
             _publicHttp = new HttpClient { BaseAddress = env.ApiPublicBaseAddress };
 
             // Database
+#if NET48
+
             SQLitePCL.Batteries_V2.Init();
+
+            var connectionString = BIMformative.Infrastructure.Db.SqliteDatabaseBootstrapper.Initialize();
+
+            downloadedRepo = new BIMformative.Infrastructure.Repositories.SqliteDownloadedScriptRepository(connectionString);
+
+#else
+            SQLitePCL.Batteries_V2.Init();
+
             var dbContext = DatabaseBootstrapper.Initialize();
+
             var downloadedRepo = new DownloadedScriptRepository(dbContext);
 
-            
-            
+#endif
 
             // Local Services
-            var authStore = new LocalAuthStore();
+            var authStore = new LocalAuthStore(_logger);
 
             _settingsService = new FileSettingsService();
             _settingsService.Load();
@@ -98,7 +222,9 @@ namespace BIMformative.DynamoExtension
 
             // Infrastructure - API Clients
             var authApiClient = new AuthApiClient(_authHttp, _auth);
+
             var publicApiClient = new PublicApiClient(_publicHttp);
+
             var scriptApiClient = new ScriptApiClient(authApiClient, publicApiClient);
 
             // Core Services
@@ -184,5 +310,59 @@ namespace BIMformative.DynamoExtension
         }
 
         public void Startup (ViewStartupParams viewStartupParams) { }
+
+        private static bool _dependencyPreloaded;
+
+        private void PreloadCriticalDependencies()
+        {
+            if (_dependencyPreloaded)
+                return;
+
+            var baseDir = Path.GetDirectoryName(typeof(BIMformativeViewExtension).Assembly.Location);
+            if (string.IsNullOrWhiteSpace(baseDir) || !Directory.Exists(baseDir))
+                return;
+
+            var assemblyNames = new[]
+            {
+                "Microsoft.Extensions.DependencyInjection.dll",
+                "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+                "Microsoft.Extensions.Logging.dll",
+                "Microsoft.Extensions.Logging.Abstractions.dll",
+                "Microsoft.Extensions.Options.dll",
+                "Microsoft.Extensions.Primitives.dll",
+                "Microsoft.Extensions.Caching.Memory.dll",
+                "Microsoft.Extensions.Caching.Abstractions.dll",
+                "Microsoft.Extensions.Configuration.dll",
+                "Microsoft.Extensions.Configuration.Abstractions.dll",
+                "Microsoft.EntityFrameworkCore.dll",
+                "Microsoft.EntityFrameworkCore.Relational.dll",
+                "Microsoft.EntityFrameworkCore.Sqlite.dll",
+                "Microsoft.Data.Sqlite.dll"
+            };
+
+            foreach (var file in assemblyNames)
+            {
+                try
+                {
+                    var path = Path.Combine(baseDir, file);
+                    if (File.Exists(path))
+                    {
+                        Assembly.LoadFrom(path);
+                    }
+                    else
+                    {
+                        _logger?.Warning("Preload missing: " + file);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Error("Preload failed for " + file + ": " + ex.Message);
+                }
+            }
+
+            _dependencyPreloaded = true;
+        }
+
+
     }
 }

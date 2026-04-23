@@ -20,31 +20,31 @@ namespace BIMformative.Infrastructure.Repositories
             _db = db;
         }
 
-        public async Task<List<DownloadedScript>> GetAllAsync()
+        public async Task<List<DownloadedScript>> GetAllAsync(CancellationToken ct = default)
             => await _db.DownloadedScripts
                 .OrderByDescending(x => x.DownloadedAt)
                 .ToListAsync();
 
-        public async Task<DownloadedScript> GetByIdAsync(string id)
+        public async Task<DownloadedScript> GetByIdAsync(string id, CancellationToken ct = default)
             => await _db.DownloadedScripts.FindAsync(id);
 
-        public async Task AddAsync(DownloadedScript script)
+        public async Task AddAsync(DownloadedScript script, CancellationToken ct = default)
             => await _db.DownloadedScripts.AddAsync(script);
 
-        public Task UpdateAsync(DownloadedScript script)
+        public Task UpdateAsync(DownloadedScript script, CancellationToken ct = default)
         {
             _db.DownloadedScripts.Update(script);
             return Task.CompletedTask;
         }
 
-        public async Task DeleteAsync(string id)
+        public async Task DeleteAsync(string id, CancellationToken ct = default)
         {
             var entity = await _db.DownloadedScripts.FindAsync(id);
             if (entity != null)
                 _db.DownloadedScripts.Remove(entity);
         }
 
-        public Task<bool> ExistsAsync(string id)
+        public Task<bool> ExistsAsync(string id, CancellationToken ct = default)
             => _db.DownloadedScripts.AnyAsync(x => x.Id == id);
 
         public Task SaveChangesAsync(CancellationToken ct = default)

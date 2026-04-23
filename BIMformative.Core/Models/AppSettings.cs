@@ -4,6 +4,6 @@
     {
         public string DefaultScriptSavePath { get; set; }
 
-        public bool AskBeforeOverwrite { get; set; }
+        public bool AskBeforeOverwrite { get; set; } = true;
     }
 }

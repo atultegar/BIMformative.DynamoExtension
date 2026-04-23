@@ -1,6 +1,5 @@
 ﻿using BIMformative.Core.Interfaces;
 using BIMformative.Core.Models.Auth;
-using BIMformative.Core.Security;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -11,11 +10,18 @@ namespace BIMformative.DynamoExtension.Services.Auth
 {
     public class LocalAuthStore : ILocalAuthStore
     {
+        private readonly IAppLogger _logger;
+
         private static readonly string Folder =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BIMformative");
 
         private static readonly string FilePath =
-            Path.Combine(Folder, "auth.dat");
+            Path.Combine(Folder, "auth.json");
+
+        public LocalAuthStore(IAppLogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         public Task SaveAsync(AuthCache cache)
         {
@@ -24,12 +30,11 @@ namespace BIMformative.DynamoExtension.Services.Auth
 
             Directory.CreateDirectory(Folder);
 
-            string json = JsonConvert.SerializeObject(cache);
-            byte[] plaintext = Encoding.UTF8.GetBytes(json);
+            string json = JsonConvert.SerializeObject(cache, Formatting.Indented);
 
-            byte[] encrypted = DpapiProtector.Protect(plaintext);
+            File.WriteAllText(FilePath, json, Encoding.UTF8);
 
-            File.WriteAllBytes(FilePath, encrypted);
+            _logger.Info("Auth cache saved:" + FilePath);
 
             return Task.CompletedTask;
         }
@@ -41,17 +46,20 @@ namespace BIMformative.DynamoExtension.Services.Auth
 
             try
             {
-                var encrypted = File.ReadAllBytes(FilePath);
-                var decrypted = DpapiProtector.Unprotect(encrypted);
-
-                var json = Encoding.UTF8.GetString(decrypted);
+                string json = File.ReadAllText(FilePath, Encoding.UTF8);
                 var result = JsonConvert.DeserializeObject<AuthCache>(json);
+
+                if (result == null)
+                    throw new InvalidOperationException("Deserialized auth cache is null.");
+
+                _logger.Info("Auth cache loaded successfully");
 
                 return Task.FromResult(result);
             }
-            catch
+            catch (Exception ex)
             {
-                ClearAsync();
+                _logger.Error("Failed to load auth cache: " + ex);
+                
                 return Task.FromResult<AuthCache>(null);
             }
         }
@@ -59,7 +67,11 @@ namespace BIMformative.DynamoExtension.Services.Auth
         public Task ClearAsync()
         {
             if (File.Exists(FilePath))
+            {
                 File.Delete(FilePath);
+                _logger.Info("Auth cache deleted.");
+            }
+                
 
             return Task.CompletedTask;
         }
